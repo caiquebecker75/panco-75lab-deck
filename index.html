@@ -810,7 +810,7 @@ body.pdf .trilha-linha i{width:100%}
           <div class="est"><span class="im zoom" data-img="assets/modulo-central.webp" data-cap="Módulo central · 0,70 × 0,50 × 1,60 m"><img src="assets/modulo-central.webp" alt="Módulo central Panco"></span><b>Módulo central</b><i>0,70 × 0,50 m</i><button class="arbtn" data-ar="modulo-central"><i class="ic" data-ic="cubo"></i>AR</button></div>
           <div class="est"><span class="im zoom" data-img="assets/modulo-cabeceira.webp" data-cap="Módulo cabeceira · 1,00 × 0,50 × 1,60 m"><img src="assets/modulo-cabeceira.webp" alt="Módulo de cabeceira Panco"></span><b>Cabeceira</b><i>1,00 × 0,50 m</i><button class="arbtn" data-ar="modulo-cabeceira"><i class="ic" data-ic="cubo"></i>AR</button></div>
           <div class="est"><span class="im zoom" data-img="assets/ilha-1-palete.webp" data-cap="Ilha de 1 palete · 1,20 × 1,00 × 1,60 m"><img src="assets/ilha-1-palete.webp" alt="Ilha Panco de um palete"></span><b>Ilha 1 palete</b><i>1,20 × 1,00 m</i><button class="arbtn" data-ar="ilha-1-palete"><i class="ic" data-ic="cubo"></i>AR</button></div>
-          <div class="est"><span class="im zoom" data-img="assets/ilha-2-paletes.webp" data-cap="Ilha de 2 paletes · 2,40 × 1,00 × 1,60 m"><img src="assets/ilha-2-paletes.webp" alt="Ilha Panco de dois paletes"></span><b>Ilha 2 paletes</b><i>2,40 × 1,00 m</i><button class="arbtn" data-ar="ilha-2-paletes"><i class="ic" data-ic="cubo"></i>AR</button></div>
+          <div class="est"><span class="im zoom" data-img="assets/ilha-2-paletes.webp" data-cap="Ilha de 2 paletes · 2,40 × 1,00 × 1,60 m"><img src="assets/ilha-2-paletes.webp" alt="Ilha Panco de dois paletes"></span><b>Ilha 2 paletes</b><i>2,40 × 1,00 m</i></div>
           <div class="est"><span class="im zoom" data-img="assets/portico.webp" data-cap="Pórtico modular, montado com as mesmas colunas da ilha"><img src="assets/portico.webp" alt="Pórtico modular Panco"></span><b>Pórtico</b><i>por vão de loja</i><button class="arbtn" data-ar="portico"><i class="ic" data-ic="cubo"></i>AR</button></div>
         </div>
         <div class="nota"><p><b>Simples de montar, abastecer e trocar.</b> Mudar a categoria em destaque é refazer o envelopamento, não a estrutura.</p><p><b>O que isso muda:</b> a Panco escolhe qual categoria precisa de empurrão, loja a loja, sem refazer o projeto.</p></div>
@@ -1234,7 +1234,7 @@ body.pdf .trilha-linha i{width:100%}
   document.querySelectorAll('.rota').forEach(function(r){ r.addEventListener('click', function(e){ if (!e.target.closest('.zoom')) rota(r); }); });
 
   // 11: o celular mostra as telas reais do sistema de QR, na ordem do fluxo
-  var FONE_TXT = ['1 · O promotor escolhe as peças desta loja', '2 · Abre a página do enxoval Panco', '3 · Vê a peça: objetivo, montagem, medidas', '4 · Cada estrutura tem AR em tamanho real', '5 · No fim, registra loja, foto e localização'];
+  var FONE_TXT = ['1 · O promotor escolhe as peças desta loja', '2 · Abre a página do enxoval Panco', '3 · Vê a peça: objetivo, montagem, medidas', '4 · As estruturas abrem em AR, em tamanho real', '5 · No fim, registra loja, foto e localização'];
   var fone = document.getElementById('fone'), foneImgs = [].slice.call(fone.querySelectorAll('img')), foneTimer = null;
   function telaFone(k){ foneImgs.forEach(function(im, n){ im.classList.toggle('on', n === k); }); document.getElementById('foneTxt').textContent = FONE_TXT[k]; }
   function modo(fn){
@@ -1249,10 +1249,9 @@ body.pdf .trilha-linha i{width:100%}
   var AR_BASE = 'https://projetos.75lab.com.br/ar/panco-pecas-pdv/';
   var MODELOS = [
     {id:'ilha-1-palete', nome:'Ilha 1 palete', med:'1,20 × 1,00 × 1,60 m', img:'assets/ilha-1-palete.webp'},
-    {id:'ilha-2-paletes', nome:'Ilha 2 paletes', med:'2,40 × 1,00 × 1,60 m', img:'assets/ilha-2-paletes.webp'},
     {id:'modulo-cabeceira', nome:'Módulo cabeceira', med:'1,00 × 0,50 × 1,60 m', img:'assets/modulo-cabeceira.webp'},
     {id:'modulo-central', nome:'Módulo central', med:'0,70 × 0,50 × 1,60 m', img:'assets/modulo-central.webp'},
-    {id:'cubo', nome:'Cubo', med:'45 × 45 cm', img:'assets/cubo.webp'},
+    {id:'cubo', nome:'Cubos', med:'45 × 45 cm cada', img:'assets/cubo.webp'},
     {id:'portico', nome:'Pórtico', med:'por vão de loja', img:'assets/portico.webp'}
   ];
   var mv = document.getElementById('mv'), lista = document.getElementById('arLista');
