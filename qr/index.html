@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Panco · QR da peça</title>
+<meta name="description" content="Demonstração do QR das peças de PDV da Panco: conteúdo para o shopper e registro de positivação para o promotor.">
+<meta name="theme-color" content="#E1251B">
+<link rel="icon" href="../favicon.svg">
+<style>
+@font-face{font-family:'Nunito';src:url(../assets/nunito.woff2) format('woff2');font-weight:200 1000;font-display:swap}
+:root{--red:#E1251B;--deep:#9B1F24;--blue:#001689;--yellow:#FFCD00;--ink:#231F20;--ink2:#5B5654;--ink3:#767170;--cream:#FFF6EA;--rule:#EAE3DB}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--cream)}
+body{font-family:'Nunito',ui-rounded,system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;max-width:480px;margin:0 auto;min-height:100vh;background:#fff}
+button,input{font:inherit;color:inherit}
+button{border:0;background:none;cursor:pointer}
+.moldura body,body.moldura{padding-top:34px}
+.topo{background:var(--red);color:#fff;padding:18px 18px 64px;position:relative;overflow:hidden}
+.topo::after{content:"";position:absolute;right:-90px;top:-60px;width:240px;height:240px;border-radius:50%;background:var(--deep);opacity:.55}
+.topo .l{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
+.topo img{height:42px}
+.topo .demo{font-size:10.5px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;background:rgba(255,255,255,.18);border-radius:999px;padding:5px 10px}
+.topo .peca{position:relative;z-index:1;margin-top:16px}
+.topo .peca small{display:block;font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;opacity:.85}
+.topo .peca b{display:block;font-size:24px;font-weight:1000;letter-spacing:-.02em;line-height:1.1;margin-top:3px}
+.abas{position:relative;z-index:2;margin:-40px 16px 0;background:#fff;border-radius:16px;padding:5px;display:grid;grid-template-columns:1fr 1fr;box-shadow:0 10px 28px rgba(35,31,32,.12)}
+.abas button{height:44px;border-radius:12px;font-size:14px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:7px;color:var(--ink2);transition:.25s}
+.abas button svg{width:18px;height:18px}
+.abas button.on{background:var(--red);color:#fff}
+.abas button.on.p{background:var(--blue)}
+.vista{display:none;padding:18px 16px 30px;animation:entra .4s ease}
+.vista.on{display:block}
+@keyframes entra{from{opacity:0;transform:translateY(8px)}}
+.hero{display:grid;grid-template-columns:110px 1fr;gap:14px;align-items:center;background:var(--cream);border-radius:16px;padding:12px}
+.hero img{width:110px;height:110px;object-fit:contain}
+.hero b{display:block;font-size:18px;font-weight:1000;line-height:1.15}
+.hero span{font-size:13px;line-height:1.4;color:var(--ink2)}
+h3{font-size:13px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin:20px 0 10px}
+.receita{border:1.5px solid var(--rule);border-radius:16px;overflow:hidden}
+.receita .cab{background:var(--yellow);padding:12px 14px;font-weight:1000;font-size:16px;display:flex;justify-content:space-between;align-items:center}
+.receita .cab span{font-size:12px;font-weight:800}
+.receita ol{padding:12px 14px 14px 32px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.42;color:var(--ink2)}
+.cupom{margin-top:12px;width:100%;border-radius:16px;border:2px dashed var(--red);padding:14px;display:flex;align-items:center;gap:12px;text-align:left;background:#FFF5F4}
+.cupom .ic{width:44px;height:44px;border-radius:12px;background:var(--red);color:#fff;display:grid;place-items:center;flex:none}
+.cupom .ic svg{width:24px;height:24px}
+.cupom b{display:block;font-size:15px;font-weight:1000}
+.cupom span{font-size:12.5px;color:var(--ink2)}
+.cupom code{display:none;margin-top:6px;font-family:ui-monospace,Menlo,monospace;font-weight:700;font-size:16px;letter-spacing:.1em;color:var(--red)}
+.cupom.aberto code{display:block}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{height:36px;padding:0 14px;border-radius:18px;background:var(--cream);font-size:13.5px;font-weight:800;transition:.2s}
+.chips button.on{background:var(--ink);color:#fff}
+.obg{display:none;margin-top:10px;font-size:13px;font-weight:800;color:var(--blue)}
+.obg.on{display:block}
+label.campo{display:block;margin-bottom:12px}
+label.campo span{display:block;font-size:12.5px;font-weight:900;color:var(--ink3);margin-bottom:6px;letter-spacing:.02em}
+.fixo{background:var(--cream);border-radius:12px;padding:12px 14px;font-size:14.5px;font-weight:800;display:flex;justify-content:space-between}
+.fixo small{font-weight:700;color:var(--ink3)}
+.estados{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.estados button{border-radius:12px;padding:10px 6px;background:var(--cream);font-size:12.5px;font-weight:900;display:flex;flex-direction:column;align-items:center;gap:5px;border:2px solid transparent}
+.estados button i{width:14px;height:14px;border-radius:50%}
+.estados button.on{border-color:var(--blue);background:#fff}
+.foto{display:flex;align-items:center;gap:12px;border-radius:12px;border:2px dashed #C9CFEA;padding:12px;cursor:pointer;background:#F6F7FC}
+.foto svg{width:30px;height:30px;color:var(--blue);flex:none}
+.foto b{font-size:14px;font-weight:900;display:block}
+.foto span{font-size:12px;color:var(--ink2)}
+.foto img{width:54px;height:54px;object-fit:cover;border-radius:8px;display:none}
+.foto.tem img{display:block}
+.foto input{display:none}
+.registrar{margin-top:14px;width:100%;height:52px;border-radius:14px;background:var(--blue);color:#fff;font-size:16px;font-weight:1000;display:flex;align-items:center;justify-content:center;gap:9px}
+.registrar svg{width:20px;height:20px}
+.ok{display:none;margin-top:14px;border-radius:16px;background:#EAF6EE;padding:14px;gap:12px;align-items:flex-start}
+.ok.on{display:flex;animation:entra .4s ease}
+.ok .v{width:36px;height:36px;border-radius:50%;background:#1E8E4E;color:#fff;display:grid;place-items:center;flex:none}
+.ok .v svg{width:20px;height:20px}
+.ok b{display:block;font-size:15px;font-weight:1000}
+.ok span{font-size:12.5px;line-height:1.45;color:var(--ink2)}
+.painel{border:1.5px solid var(--rule);border-radius:16px;overflow:hidden}
+.painel .cab{display:flex;justify-content:space-between;align-items:baseline;padding:12px 14px;background:var(--cream)}
+.painel .cab b{font-size:15px;font-weight:1000}
+.painel .cab span{font-size:11.5px;font-weight:800;color:var(--ink3)}
+.painel .kpi{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1.5px solid var(--rule)}
+.painel .kpi div{padding:10px 12px}
+.painel .kpi div + div{border-left:1.5px solid var(--rule)}
+.painel .kpi b{display:block;font-size:22px;font-weight:1000;letter-spacing:-.02em}
+.painel .kpi span{font-size:11px;font-weight:800;color:var(--ink3)}
+.painel ul{list-style:none}
+.painel li{display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:13.5px;border-top:1px solid var(--rule)}
+.painel li:first-child{border-top:0}
+.painel li i{width:10px;height:10px;border-radius:50%;flex:none}
+.painel li b{font-weight:900}
+.painel li small{margin-left:auto;font-size:11.5px;font-weight:800;color:var(--ink3)}
+.painel li.novo{background:#F1F3FB;animation:entra .4s ease}
+.rodape{padding:18px 16px 28px;font-size:11.5px;line-height:1.5;color:var(--ink3);border-top:1.5px solid var(--rule)}
+.rodape a{color:var(--ink2);font-weight:800}
+.verde{background:#1E8E4E}.amarelo{background:#E2A400}.vermelho{background:var(--red)}
+/* toque simulado quando a página roda dentro do celular do deck */
+.dedo{position:fixed;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:rgba(0,22,137,.25);box-shadow:0 0 0 2px rgba(255,255,255,.9);
+  pointer-events:none;z-index:50;opacity:0;transition:left .5s ease,top .5s ease,opacity .25s}
+.dedo.on{opacity:1}
+.dedo.toca{transform:scale(.7)}
+</style>
+</head>
+<body>
+<header class="topo">
+  <div class="l"><img src="../assets/logo-panco.svg" alt="Panco"><span class="demo">Demonstração 75 LAB</span></div>
+  <div class="peca"><small id="pecaTipo">Testeira de categoria</small><b id="pecaNome">Pães Panco</b></div>
+</header>
+<nav class="abas">
+  <button class="on" data-v="shopper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Sou cliente</button>
+  <button class="p" data-v="promotor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5H7a2 2 0 0 0-2 2V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6.5a2 2 0 0 0-2-2h-2"/><rect x="9" y="2.5" width="6" height="4" rx="1.2"/><path d="M9 13.6l2.2 2.2 4-4.4"/></svg>Sou promotor</button>
+</nav>
+
+<!-- shopper -->
+<section class="vista on" id="v-shopper">
+  <div class="hero"><img src="../assets/cat-paes.webp" alt="Pães Panco"><div><b>Pão para todos os momentos</b><span>Do café da manhã ao lanche da tarde, a Panco está na sua mesa.</span></div></div>
+  <h3>Receita da semana</h3>
+  <div class="receita">
+    <div class="cab">Rabanada de forno <span>25 min · 4 porções</span></div>
+    <ol>
+      <li>Corte o pão em fatias grossas.</li>
+      <li>Passe no leite com açúcar e depois no ovo batido.</li>
+      <li>Asse a 200 °C por 15 minutos, virando na metade.</li>
+      <li>Finalize com açúcar e canela.</li>
+    </ol>
+  </div>
+  <button class="cupom" id="cupom">
+    <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9a3 3 0 0 0 0 6v3h18v-3a3 3 0 0 0 0-6V6H3z"/><path d="M13 6v12" stroke-dasharray="2 2"/></svg></span>
+    <span><b>Toque para ver o cupom</b><span>Exemplo de mecânica que a Panco pode ativar por loja.</span><code>PANCO-DEMO</code></span>
+  </button>
+  <h3>O que você procura hoje?</h3>
+  <div class="chips" id="chips"><button>Pães</button><button>Bolos</button><button>Bolinhos</button><button>Biscoitos</button><button>Massas</button><button>Panettones</button></div>
+  <p class="obg" id="obg">Obrigado! Essa escolha vira dado de interesse por categoria e por loja.</p>
+</section>
+
+<!-- promotor -->
+<section class="vista" id="v-promotor">
+  <label class="campo"><span>Loja</span><div class="fixo">Loja demonstração 014 <small>São Paulo, SP</small></div></label>
+  <label class="campo"><span>Peça</span><div class="fixo">Testeira Pães · 106 × 25 cm <small>ID TP-0142</small></div></label>
+  <div class="campo"><span style="display:block;font-size:12.5px;font-weight:900;color:var(--ink3);margin-bottom:6px">Estado da peça</span>
+    <div class="estados" id="estados">
+      <button class="on" data-e="Instalada"><i class="verde"></i>Instalada</button>
+      <button data-e="Danificada"><i class="amarelo"></i>Danificada</button>
+      <button data-e="Ausente"><i class="vermelho"></i>Ausente</button>
+    </div>
+  </div>
+  <label class="foto" id="foto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span style="flex:1"><b>Foto da peça na loja</b><span>Abre a câmera do celular</span></span><img alt="Foto da peça" id="fotoPrev"><input type="file" accept="image/*" capture="environment" id="fotoIn"></label>
+  <button class="registrar" id="registrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Registrar positivação</button>
+  <div class="ok" id="ok"><span class="v"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div><b>Positivação registrada</b><span id="okTxt"></span></div></div>
+  <h3>O que a Panco vê</h3>
+  <div class="painel">
+    <div class="cab"><b>Parque de peças</b><span>exemplo</span></div>
+    <div class="kpi"><div><b id="kInst">42</b><span>instaladas</span></div><div><b>5</b><span>para trocar</span></div><div><b>3</b><span>ausentes</span></div></div>
+    <ul id="lista">
+      <li><i class="verde"></i><span><b>Loja 009</b> · Testeira Bolos</span><small>hoje 09:12</small></li>
+      <li><i class="amarelo"></i><span><b>Loja 021</b> · Wobbler Biscoitos</span><small>ontem 17:40</small></li>
+      <li><i class="vermelho"></i><span><b>Loja 003</b> · Stopper Massas</span><small>ontem 15:05</small></li>
+    </ul>
+  </div>
+</section>
+
+<footer class="rodape">Página de demonstração feita pela 75 LAB para a apresentação à Panco. Conteúdo, cupom e dados do painel são ilustrativos; nada do que você registra aqui é enviado para lugar nenhum. · <a href="https://75lab.com.br" target="_blank" rel="noopener">75lab.com.br</a></footer>
+<span class="dedo" id="dedo"></span>
+
+<script>
+(function(){
+  var q = new URLSearchParams(location.search);
+  if (q.get('moldura') === '1') document.body.classList.add('moldura');
+
+  function vista(v){
+    document.querySelectorAll('.abas button').forEach(function(b){ b.classList.toggle('on', b.dataset.v === v); });
+    document.querySelectorAll('.vista').forEach(function(s){ s.classList.toggle('on', s.id === 'v-' + v); });
+    window.scrollTo(0, 0);
+  }
+  document.querySelectorAll('.abas button').forEach(function(b){ b.addEventListener('click', function(){ parar(); vista(b.dataset.v); }); });
+
+  var cupom = document.getElementById('cupom');
+  cupom.addEventListener('click', function(){ cupom.classList.add('aberto'); cupom.querySelector('b').textContent = 'Seu cupom de demonstração'; });
+  document.querySelectorAll('#chips button').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('#chips button').forEach(function(x){ x.classList.toggle('on', x === b); });
+      document.getElementById('obg').classList.add('on');
+    });
+  });
+  var estado = 'Instalada';
+  document.querySelectorAll('#estados button').forEach(function(b){
+    b.addEventListener('click', function(){
+      estado = b.dataset.e;
+      document.querySelectorAll('#estados button').forEach(function(x){ x.classList.toggle('on', x === b); });
+    });
+  });
+  document.getElementById('fotoIn').addEventListener('change', function(e){
+    var f = e.target.files && e.target.files[0]; if (!f) return;
+    document.getElementById('fotoPrev').src = URL.createObjectURL(f);
+    document.getElementById('foto').classList.add('tem');
+  });
+  function registrar(){
+    var d = new Date(), hora = d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    document.getElementById('okTxt').textContent = 'Loja demonstração 014 · Testeira Pães · ' + estado + ' · hoje ' + hora + (document.getElementById('foto').classList.contains('tem') ? ' · com foto' : '');
+    document.getElementById('ok').classList.add('on');
+    var li = document.createElement('li'); li.className = 'novo';
+    var cor = estado === 'Instalada' ? 'verde' : estado === 'Danificada' ? 'amarelo' : 'vermelho';
+    li.innerHTML = '<i class="' + cor + '"></i><span><b>Loja 014</b> · Testeira Pães</span><small>agora ' + hora + '</small>';
+    var lista = document.getElementById('lista'); lista.insertBefore(li, lista.firstChild);
+    if (estado === 'Instalada'){ var k = document.getElementById('kInst'); k.textContent = +k.textContent + 1; }
+  }
+  document.getElementById('registrar').addEventListener('click', registrar);
+
+  /* dentro do deck: o slide escolhe a vista e a página mostra um toque simulado */
+  var dedo = document.getElementById('dedo'), roteiro = null;
+  function toque(el, cb){
+    var r = el.getBoundingClientRect();
+    dedo.style.left = (r.left + r.width / 2) + 'px'; dedo.style.top = (r.top + r.height / 2) + 'px';
+    dedo.classList.add('on');
+    setTimeout(function(){ dedo.classList.add('toca'); setTimeout(function(){ dedo.classList.remove('toca'); if (cb) cb(); }, 180); }, 550);
+  }
+  function parar(){ if (roteiro){ roteiro.forEach(clearTimeout); roteiro = null; } dedo.classList.remove('on'); }
+  function rodar(v){
+    parar(); vista(v); roteiro = [];
+    var passos = v === 'shopper'
+      ? [[900, '#cupom', function(){ cupom.click(); }], [2800, '#chips button:nth-child(2)', function(){ document.querySelector('#chips button:nth-child(2)').click(); }]]
+      : [[900, '#estados button:nth-child(1)', null], [2400, '#registrar', registrar], [4200, null, function(){ document.querySelector('.painel').scrollIntoView({behavior:'smooth', block:'center'}); }]];
+    passos.forEach(function(p){
+      roteiro.push(setTimeout(function(){
+        if (p[1]) toque(document.querySelector(p[1]), p[2]); else { dedo.classList.remove('on'); p[2](); }
+      }, p[0]));
+    });
+    roteiro.push(setTimeout(function(){ dedo.classList.remove('on'); }, 6500));
+  }
+  addEventListener('message', function(e){
+    if (!e.data || !e.data.modo) return;
+    cupom.classList.remove('aberto'); cupom.querySelector('b').textContent = 'Toque para ver o cupom';
+    document.getElementById('ok').classList.remove('on');
+    rodar(e.data.modo);
+  });
+  if (q.get('modo')) vista(q.get('modo'));
+})();
+</script>
+</body>
+</html>

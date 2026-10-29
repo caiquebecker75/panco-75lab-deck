@@ -1,0 +1,992 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Panco · 75LAB · Proposta integrada de presença no PDV</title>
+<meta name="description" content="Reunião comercial 75LAB e Panco. Estação Café da Manhã e sistema de categorização do PDV em uma proposta só, com caminho de implantação e modelos de contratação.">
+<meta name="theme-color" content="#E1251B">
+<link rel="icon" href="favicon.svg">
+<style>
+/* =============================================================================
+   PANCO × 75LAB · proposta integrada de presença no PDV
+   Identidade Panco (manual, ed. 1): vermelho #E1251B, Reflex Blue #001689 em
+   detalhe, amarelo Pantone 116 #FFCD00, branco em grande destaque, elemento curvo.
+   Tipografia oficial Neris não existe em web font; Nunito é a substituta que os
+   dois projetos anteriores já usam, embutida aqui em woff2 variável.
+
+   Decisão de arte: o argumento da proposta é leitura dentro de ambiente carregado,
+   então o deck faz o oposto da gôndola. Branco de verdade, render grande e sozinho,
+   vermelho em bloco inteiro só na abertura e no fechamento.
+   ========================================================================== */
+
+@font-face{
+  font-family:'Nunito';
+  src:url(assets/nunito.woff2) format('woff2');
+  font-weight:200 1000; font-style:normal; font-display:block;
+}
+
+:root{
+  --red:#E1251B; --red-deep:#9B1F24; --red-dark:#8E1F21;
+  --blue:#001689; --yellow:#FFCD00;
+  /* ink-3 fechou em #767170 por cálculo: 4,8:1 sobre branco, o mínimo de AA para
+     texto pequeno. O cinza mais claro que estava antes dava 3,4:1 e reprovava. */
+  --ink:#231F20; --ink-2:#5B5654; --ink-3:#767170;
+  --paper:#FFFFFF; --cream:#FFF6EA; --rule:#EAE3DB; --studio:#E7E6E6;
+  --ease:cubic-bezier(.2,.8,.25,1);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#D8D2CC}
+body{font-family:'Nunito',ui-rounded,'Segoe UI',system-ui,sans-serif;color:var(--ink);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+img{display:block;max-width:100%}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:3px solid var(--blue);outline-offset:3px;border-radius:6px}
+
+/* Lupa: o JS cola uma em cada elemento que amplia, para a peça pequena avisar
+   que dá para ver em tela cheia sem precisar de alguém explicando. */
+.zoom{position:relative}
+.zoom .zi{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;
+  background:rgba(255,255,255,.9);border:1.5px solid var(--rule);display:grid;place-items:center;
+  opacity:.72;transition:.18s var(--ease);pointer-events:none;z-index:2}
+.zoom .zi svg{width:12px;height:12px;color:var(--ink-2)}
+.zoom:hover .zi,.zoom:focus-visible .zi{opacity:1;background:#fff;border-color:var(--ink)}
+.zoom:hover .zi svg{color:var(--ink)}
+.slide.red .zoom .zi{background:rgba(255,255,255,.92);border-color:rgba(255,255,255,.6)}
+.slide.red :focus-visible{outline-color:#fff}
+
+/* ---------- palco fixo 1600×900 ---------- */
+/* O palco é posicionado por translate, e não por centralização de grid: item de
+   grid mais largo que o container alinha ao início em vez de centralizar, e aí o
+   deck saía deslocado para a direita em qualquer tela menor que 1600. */
+#deck{position:fixed;inset:0;overflow:hidden}
+#stage{position:absolute;top:50%;left:50%;width:1600px;height:900px;
+  transform-origin:center center;background:var(--paper);
+  box-shadow:0 30px 90px rgba(35,31,32,.22)}
+
+.slide{position:absolute;inset:0;display:none;flex-direction:column;
+  padding:60px 84px 78px 128px;background:var(--paper);overflow:hidden}
+.slide.on{display:flex}
+.slide.cream{background:var(--cream)}
+.slide.red{background:var(--red);color:#fff}
+
+/* Entrada discreta, uma só por lâmina. O fill é backwards de propósito: o estado
+   natural do elemento é visível, então se a animação não rodar a lâmina aparece
+   inteira em vez de aparecer vazia. */
+.slide.on .anim{animation:rise .38s var(--ease) backwards;animation-delay:calc(var(--d,0) * 50ms)}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  .slide.on .anim{animation:none}
+  *,*::before,*::after{transition-duration:.01ms!important}
+}
+
+/* ---------- trilho de progresso, à esquerda ---------- */
+.rail{position:absolute;left:52px;top:96px;bottom:118px;width:34px;
+  display:flex;flex-direction:column;justify-content:flex-start;gap:0}
+.rail b{font-size:13px;font-weight:900;letter-spacing:.04em;color:var(--ink-3);
+  margin-bottom:18px;font-variant-numeric:tabular-nums}
+.slide.red .rail b{color:rgba(255,255,255,.72)}
+.rail .ticks{display:flex;flex-direction:column;gap:10px}
+.rail i{display:block;height:2px;width:12px;background:var(--rule);transition:all .3s var(--ease)}
+.slide.red .rail i{background:rgba(255,255,255,.3)}
+.rail i.done{background:var(--ink-3)}
+.slide.red .rail i.done{background:rgba(255,255,255,.55)}
+.rail i.now{width:30px;height:3px;background:var(--red)}
+.slide.red .rail i.now{background:#fff}
+
+/* ---------- cabeça da lâmina ---------- */
+.part{font-size:13px;font-weight:800;letter-spacing:.06em;color:var(--red);margin-bottom:14px}
+.slide.red .part{color:rgba(255,255,255,.8)}
+h1{font-size:74px;line-height:1.0;font-weight:900;letter-spacing:-.03em;max-width:20ch}
+h2{font-size:54px;line-height:1.02;font-weight:900;letter-spacing:-.028em;max-width:24ch}
+.lede{font-size:21px;line-height:1.48;font-weight:400;color:var(--ink-2);max-width:68ch;margin-top:16px}
+.slide.red .lede{color:rgba(255,255,255,.9)}
+.head{flex:none}
+.head.wide h2{max-width:36ch}
+
+/* ---------- corpo ---------- */
+.body{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;
+  padding:26px 0 8px}
+.body.top{justify-content:flex-start;padding-top:34px}
+
+/* ---------- rodapé: a implicação + assinatura ---------- */
+.foot{flex:none;border-top:1.5px solid var(--rule);padding-top:14px;
+  display:flex;align-items:center;gap:26px}
+.slide.red .foot{border-top-color:rgba(255,255,255,.26)}
+.soWhat{flex:1;min-width:0;display:flex;align-items:baseline;gap:12px;font-size:17px;line-height:1.35}
+.soWhat em{flex:none;font-style:normal;font-weight:800;font-size:13.5px;color:var(--blue);
+  letter-spacing:.01em;position:relative;padding-left:14px}
+.soWhat em::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:7px;height:7px;background:var(--yellow);border-radius:1px}
+.slide.red .soWhat em{color:#fff}
+/* ---------- despedida, só na última lâmina ---------- */
+.foot.bye{align-items:flex-end;gap:34px;padding-top:17px}
+.bye .thx{flex:none;font-size:30px;font-weight:900;letter-spacing:-.03em;line-height:1}
+.bye .who{flex:none}
+.bye .who b{display:block;font-size:15px;font-weight:900;line-height:1.3;letter-spacing:-.012em}
+.bye .who span{display:block;font-size:12.5px;line-height:1.45;color:rgba(255,255,255,.84)}
+.sig{flex:none;margin-left:auto;display:flex;align-items:center;gap:18px}
+.sig img.panco{height:30px}
+.sig img.l75{height:13px;opacity:.72}
+.slide.red .sig img.l75{filter:brightness(0) invert(1);opacity:.9}
+.num{font-size:12.5px;font-weight:800;color:var(--ink-3);font-variant-numeric:tabular-nums;
+  letter-spacing:.04em}
+.slide.red .num{color:rgba(255,255,255,.7)}
+
+/* ---------- curva Panco, assinatura de marca, uma vez por lâmina vermelha ---------- */
+.curve{position:absolute;pointer-events:none;z-index:0}
+.curve.tr{top:-240px;right:-300px;width:780px;height:780px;border-radius:50%;
+  background:var(--red-deep);opacity:.55}
+.curve.br{bottom:-320px;right:-180px;width:620px;height:620px;border-radius:50%;
+  background:var(--red-dark);opacity:.45}
+/* Só os blocos de fluxo ganham position:relative. O trilho é absoluto e perderia
+   o posicionamento se entrasse nesta regra. */
+.slide.red > .head,.slide.red > .body,.slide.red > .foot{position:relative;z-index:1}
+.slide.red > .rail{z-index:1}
+
+/* ============================ LÂMINA 1 ============================ */
+/* A coluna da esquerda tem de caber "precisa trabalhar pela marca" numa linha só.
+   Abaixo de ~970px "marca" cai sozinha e a capa abre com uma viúva. */
+.cover .head{margin:auto 0}
+.cover h1{max-width:26ch}
+.cover .body{display:none}
+.cover .lede{max-width:56ch}
+
+/* ============== LÂMINA 2 · o mapa do percurso ==============
+   Entrou a pedido do Daniel: a reunião começa dizendo o que vai cobrir e em que
+   ordem, para a sala saber onde está a qualquer momento. As três cores dos ramos
+   são as mesmas das lâminas de frente, para o mapa rimar com o resto do deck. */
+.mapa{display:flex;align-items:stretch;flex:none}
+.mstep{flex:1;display:flex;flex-direction:column;border-top:3px solid var(--rule);padding-top:16px}
+.mstep.wide{flex:2.4}
+.mstep.fim{border-top-color:var(--red)}
+.mstep .n{font-size:12px;font-weight:900;letter-spacing:.055em;color:var(--ink-3);margin-bottom:7px}
+.mstep h3{font-size:23px;font-weight:900;letter-spacing:-.024em;line-height:1.08;margin-bottom:9px}
+.mstep > p{font-size:14.5px;line-height:1.42;color:var(--ink-2)}
+.mstep .ref{margin-top:auto;padding-top:16px;font-size:12px;font-weight:700;color:var(--ink-3)}
+.marrow{flex:none;width:54px;display:flex;align-items:center;justify-content:center;
+  color:#C8C1B9;padding-top:16px}
+.marrow svg{width:26px;height:26px}
+.branches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:2px}
+.branch{background:#fff;border:1.5px solid var(--rule);border-top-width:3px;border-radius:4px;
+  padding:13px 15px 15px}
+.branch:nth-child(1){border-top-color:#C0B8AF}
+.branch:nth-child(2){border-top-color:var(--red)}
+.branch:nth-child(3){border-top-color:var(--blue)}
+.branch b{display:block;font-size:16px;font-weight:900;letter-spacing:-.016em;line-height:1.14;
+  margin-bottom:5px}
+.branch span{display:block;font-size:13px;line-height:1.36;color:var(--ink-2)}
+
+/* ============================ LÂMINA 3 · a dor ============================ */
+.visits{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;align-items:start}
+.visit figure{border-radius:4px;overflow:hidden;background:#EFEAE4;aspect-ratio:4/3}
+.visit img{width:100%;height:100%;object-fit:cover}
+.visit .tagn{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:900;
+  color:var(--ink);letter-spacing:-.016em;line-height:1.14;margin:14px 0 7px}
+.visit p{font-size:14.5px;line-height:1.45;color:var(--ink-2)}
+/* a tarja numerada é o fio que costura a dor à peça que a resolve */
+.dn{flex:none;font-style:normal;font-size:11px;font-weight:900;color:#fff;background:var(--red);
+  border-radius:3px;padding:3px 6px;letter-spacing:.02em;font-variant-numeric:tabular-nums;
+  line-height:1}
+.srcline{font-size:13px;color:var(--ink-3);margin-top:20px}
+
+/* A legenda das dores volta em toda lâmina que usa tarja, para quem vê o deck
+   sem apresentador não precisar lembrar o que era o 03. */
+.dorleg{display:flex;flex-wrap:wrap;gap:6px 22px;margin:14px 0 0;font-size:12.5px;
+  color:var(--ink-2)}
+.dorleg span{display:inline-flex;align-items:center;gap:7px}
+
+/* ==================== LÂMINA 3 · a resposta em três frentes ==================== */
+/* flex:none com altura fixa na imagem: com flex:1 o bloco esticava e empurrava
+   a nota de ressalva para dentro do rodapé. */
+.ans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:34px;flex:none}
+.acol{display:flex;flex-direction:column;border-top:3px solid var(--rule);padding-top:15px;min-height:0}
+.acol:nth-child(1){border-top-color:#C0B8AF}
+.acol:nth-child(2){border-top-color:var(--red)}
+.acol:nth-child(3){border-top-color:var(--blue)}
+.acol .kicker{font-size:12px;font-weight:800;letter-spacing:.06em;color:var(--ink-3);margin-bottom:5px}
+.acol:nth-child(3) .kicker{color:var(--blue)}
+.acol h3{font-size:26px;font-weight:900;letter-spacing:-.024em;line-height:1.08;margin-bottom:9px}
+.acol > p{font-size:15.5px;line-height:1.45;color:var(--ink-2);margin-bottom:12px}
+.acol .ptags{display:flex;gap:5px;margin-bottom:14px}
+.acol .shot{flex:none;height:168px;margin-top:auto;display:flex;align-items:center;justify-content:center}
+.acol .shot img{max-height:100%;max-width:100%;width:auto;object-fit:contain}
+/* filho direto de propósito: sem isso esta regra pegava também o SVG da lupa,
+   que mora dentro de .zi, e a lupa saía do tamanho do QR */
+.acol .shot > svg{width:138px;height:138px;color:var(--blue)}
+
+/* ============== LÂMINAS 4 e 5 · as frentes, peça a peça ============== */
+.front{display:flex;flex-direction:column;flex:none;min-height:0}
+.prow{display:grid;gap:16px;align-content:start}
+.prow.c8{grid-template-columns:repeat(8,minmax(0,1fr))}
+.prow.c6{grid-template-columns:repeat(6,minmax(0,1fr))}
+.prow figure{display:flex;flex-direction:column;min-width:0}
+.prow .im{display:flex;align-items:flex-end;justify-content:center}
+.prow img{max-height:100%;max-width:100%;width:auto;object-fit:contain}
+.prow figcaption{margin-top:9px;border-top:1.5px solid var(--rule);padding-top:6px}
+.prow b{display:block;font-size:13px;font-weight:900;letter-spacing:-.01em;line-height:1.18}
+.prow i{display:block;font-style:normal;font-size:11.5px;font-weight:700;color:var(--blue);
+  margin-top:2px;font-variant-numeric:tabular-nums}
+.blocklab{display:flex;align-items:center;gap:12px;font-size:13px;font-weight:800;
+  letter-spacing:.05em;color:var(--ink-3);margin:0 0 12px}
+.blocklab::after{content:"";flex:1;height:1.5px;background:var(--rule)}
+.blocklab em{font-style:normal;color:var(--red)}
+.frontnote{flex:none;margin-top:14px;border-top:1.5px solid var(--rule);padding-top:11px;
+  display:flex;gap:26px;align-items:flex-start}
+.frontnote p{flex:1;font-size:13.5px;line-height:1.45;color:var(--ink-2)}
+.frontnote p b{font-weight:900;color:var(--ink)}
+
+/* LÂMINA 5 · a ponta envelopada como caso, ao lado das peças */
+.extra{display:grid;grid-template-columns:minmax(0,.78fr) minmax(0,1fr);gap:36px;flex:none;min-height:0}
+.extra > div{display:flex;flex-direction:column;min-height:0}
+.casepair{flex:none;height:256px;display:flex;gap:14px;align-items:flex-end;justify-content:center}
+.casepair figure{cursor:zoom-in;min-width:0;height:100%;display:flex;align-items:flex-end}
+.casepair img{max-height:100%;width:auto;object-fit:contain;border-radius:4px}
+
+/* ============================ LÂMINA 6 · a estação ============================ */
+.showcase{display:grid;grid-template-columns:minmax(0,1fr) 360px;grid-template-rows:minmax(0,1fr);
+  gap:34px;align-items:stretch;flex:1;min-height:0}
+.showcase .hero{min-height:0;display:flex;align-items:center;justify-content:center;cursor:zoom-in}
+.showcase .hero img{max-height:100%;max-width:100%;width:auto;object-fit:contain}
+.pts{display:flex;flex-direction:column;justify-content:center;gap:14px;min-height:0}
+.pt{border-left:3px solid var(--red);padding-left:15px}
+.pt u{display:flex;gap:5px;text-decoration:none;margin-bottom:5px}
+.pt b{display:block;font-size:16.5px;font-weight:900;margin-bottom:3px;letter-spacing:-.012em}
+.pt span{font-size:14px;line-height:1.42;color:var(--ink-2)}
+.insets{display:flex;gap:12px;margin-top:4px}
+.insets figure{flex:1;min-width:0;cursor:zoom-in}
+.insets .im{height:74px;display:flex;align-items:center;justify-content:center;
+  background:#fff;border:1.5px solid var(--rule);border-radius:4px;padding:4px}
+.insets img{max-height:100%;max-width:100%;width:auto;object-fit:contain}
+.insets figcaption{font-size:11.5px;font-weight:700;color:var(--ink-2);margin-top:5px;line-height:1.25}
+
+/* ================== LÂMINA 7 · o QR, nas duas pontas ==================
+   O mesmo código serve para dois públicos: o shopper, que escaneia e recebe
+   conteúdo de volta, e quem positiva, que escaneia e deixa registro. As duas
+   colunas existem para a lâmina não parecer que o QR só serve de controle. */
+.qr2{display:grid;grid-template-columns:1fr 1fr;gap:38px;flex:none}
+.qrcol{display:flex;flex-direction:column;border-top:3px solid var(--rule);padding-top:16px}
+.qrcol.a{border-top-color:var(--red)}
+.qrcol.b{border-top-color:var(--blue)}
+.qrcol .ic{display:block;width:46px;height:46px;margin-bottom:14px}
+.qrcol .ic svg{width:100%;height:100%}
+.qrcol.a .ic{color:var(--red)}
+.qrcol.b .ic{color:var(--blue)}
+.qrcol .kicker{font-size:12.5px;font-weight:800;letter-spacing:.05em;color:var(--ink-3);
+  margin-bottom:5px}
+.qrcol h3{font-size:25px;font-weight:900;letter-spacing:-.024em;line-height:1.08;margin-bottom:15px}
+.qrcol ul{list-style:none;display:flex;flex-direction:column;gap:11px}
+.qrcol li{font-size:15px;line-height:1.42;color:var(--ink-2);padding-left:20px;position:relative}
+.qrcol li::before{content:"";position:absolute;left:0;top:7px;width:9px;height:9px;border-radius:2px}
+.qrcol.a li::before{background:var(--red)}
+.qrcol.b li::before{background:var(--blue)}
+.qrcol li b{font-weight:900;color:var(--ink)}
+.qrnote{flex:none;margin-top:24px;background:#F3F4FA;border:1.5px solid #DFE2F2;border-radius:4px;
+  padding:14px 18px;font-size:14px;line-height:1.45;color:var(--ink-2)}
+.qrnote b{font-weight:900;color:var(--blue)}
+
+/* ============== LÂMINA 8 · a escolha de verba ==============
+   Nasceu de um ponto comercial real: a ilha ficou cara na prévia. A lâmina não
+   esconde isso, reenquadra. Concentrar e espalhar aparecem lado a lado, cada um
+   com as dores que resolve, e a diferença de alcance fica visível sem nenhum
+   valor em reais, que continua vivendo no documento comercial. */
+.pick{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.24fr);gap:34px;flex:none}
+.pcol{display:flex;flex-direction:column;border-top:2.5px solid var(--rule);padding-top:13px}
+.pcol.a{border-top-color:var(--red)}
+.pcol.b{border-top-color:var(--blue)}
+.pcol > h3{font-size:20px;font-weight:900;letter-spacing:-.02em;margin-bottom:3px}
+.pcol > .sub{font-size:14px;line-height:1.38;color:var(--ink-2);margin-bottom:13px;min-height:20px}
+.pshots{display:flex;gap:16px;justify-content:center;align-items:flex-end;margin-bottom:14px}
+.pshots figure{cursor:zoom-in;min-width:0}
+.pshots img{height:162px;width:auto;object-fit:contain;border-radius:4px;display:block}
+.ptags{display:flex;gap:5px;margin-bottom:10px}
+.pcol ul{list-style:none;display:flex;flex-direction:column;gap:7px}
+.pcol li{font-size:14.5px;line-height:1.38;color:var(--ink-2);padding-left:18px;position:relative}
+.pcol li::before{content:"";position:absolute;left:0;top:9px;width:7px;height:2px;background:var(--ink-3)}
+.picknote{flex:none;margin-top:16px;border-top:1.5px solid var(--rule);padding-top:12px;
+  display:flex;gap:28px;align-items:flex-start}
+.picknote p{flex:1;font-size:13px;line-height:1.42;color:var(--ink-2)}
+/* a lede desta lâmina corre na largura toda, para fechar em uma linha só */
+.lede.full{max-width:none}
+.picknote p b{font-weight:900;color:var(--ink)}
+
+/* ============== LÂMINA 9 · o convite, em quatro portas ==============
+   A lâmina não escolhe a frente de propósito: isso fica para a fala. O que ela
+   faz é mostrar que existem quatro formas de começar e que nenhuma depende das
+   outras, inclusive o QR, que roda em material impresso em qualquer gráfica. */
+.doors{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;flex:none}
+.door{display:flex;flex-direction:column;background:rgba(255,255,255,.1);
+  border:1.5px solid rgba(255,255,255,.28);border-radius:5px;padding:20px 20px 22px}
+.door .k{flex:none;width:30px;height:30px;border-radius:50%;background:#fff;color:var(--red);
+  font-size:15px;font-weight:900;display:grid;place-items:center;margin-bottom:14px}
+.door b{display:block;font-size:20px;font-weight:900;letter-spacing:-.024em;line-height:1.1;
+  margin-bottom:8px}
+.door > span{display:block;font-size:14.5px;line-height:1.42;color:rgba(255,255,255,.88)}
+.door em{font-style:normal;align-self:flex-start;margin-top:auto;padding-top:14px}
+.door em i{font-style:normal;display:inline-block;font-size:11.5px;font-weight:800;
+  letter-spacing:.04em;color:#fff;border:1.5px solid rgba(255,255,255,.45);
+  border-radius:999px;padding:4px 11px}
+.close4{flex:none;display:flex;margin-top:24px;border-top:1.5px solid rgba(255,255,255,.3);
+  padding-top:15px}
+.close4 div{flex:1;padding-right:18px}
+.close4 div + div{padding-left:18px;border-left:1.5px solid rgba(255,255,255,.22)}
+.close4 b{display:block;font-size:15.5px;font-weight:900;line-height:1.2;margin-bottom:4px}
+.close4 span{font-size:13px;line-height:1.35;color:rgba(255,255,255,.8)}
+.fineprint{flex:none;margin-top:18px;display:flex;gap:26px;align-items:flex-start}
+.fineprint p{flex:1;font-size:13.5px;line-height:1.45;color:rgba(255,255,255,.85)}
+.fineprint p b{font-weight:800;color:#fff}
+
+/* ---------- navegação ---------- */
+.nav{position:absolute;right:30px;bottom:24px;display:flex;gap:8px;z-index:30}
+.nav button{width:38px;height:38px;border-radius:50%;border:1.6px solid var(--rule);
+  background:rgba(255,255,255,.9);display:grid;place-items:center;transition:.18s var(--ease);
+  font-size:17px;font-weight:900;color:var(--ink-2);line-height:1}
+.nav button:hover{border-color:var(--ink);color:var(--ink)}
+.nav button[disabled]{opacity:.32;cursor:default}
+.nav button[disabled]:hover{border-color:var(--rule);color:var(--ink-2)}
+#hint{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);z-index:30;
+  font-size:12px;color:var(--ink-3);letter-spacing:.02em;transition:opacity .5s}
+/* sobre a lâmina vermelha o chrome inverte, senão some no fundo */
+#stage.onred .nav button{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.45);color:#fff}
+#stage.onred .nav button:hover{background:#fff;border-color:#fff;color:var(--red)}
+#stage.onred .nav button[disabled]{opacity:.3}
+#stage.onred #hint{color:rgba(255,255,255,.72)}
+/* ---------- overlays: parking lot, índice, lightbox ---------- */
+.ov{position:fixed;inset:0;z-index:200;background:rgba(35,31,32,.72);display:none;
+  place-items:center;padding:40px}
+.ov.on{display:grid}
+.ovbox{background:var(--paper);border-radius:6px;max-width:1000px;width:100%;
+  max-height:88vh;overflow:auto;padding:46px 54px 42px;position:relative}
+.ovbox .x{position:absolute;top:18px;right:22px;font-size:26px;line-height:1;color:var(--ink-3)}
+.ovbox .x:hover{color:var(--ink)}
+.ovbox .part{margin-bottom:12px}
+.ovbox h2{font-size:38px;max-width:22ch}
+.ovbox > p.lede{font-size:18px;margin-bottom:28px}
+.opps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:26px}
+.opp{border-top:2.5px solid var(--rule);padding-top:14px}
+.opp b{display:block;font-size:18px;font-weight:900;letter-spacing:-.016em;margin-bottom:7px;line-height:1.14}
+.opp p{font-size:14.5px;line-height:1.46;color:var(--ink-2)}
+.ovline{font-size:14.5px;line-height:1.5;color:var(--ink-2);border-top:1.5px solid var(--rule);
+  padding-top:14px}
+.idx{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:4px 28px;margin-top:8px}
+.idx button{display:flex;gap:14px;align-items:baseline;width:100%;text-align:left;
+  padding:11px 10px;border-radius:4px;transition:.15s}
+.idx button:hover{background:var(--cream)}
+.idx button i{font-style:normal;font-size:12px;font-weight:900;color:var(--ink-3);
+  font-variant-numeric:tabular-nums;flex:none;width:20px}
+.idx button span{font-size:15.5px;font-weight:700;line-height:1.3}
+.idx button.cur span{color:var(--red)}
+.idx button.cur i{color:var(--red)}
+#lb{background:rgba(35,31,32,.93)}
+#lb .wrap{max-width:94vw;max-height:92vh;display:flex;flex-direction:column;gap:14px;align-items:center}
+#lb img{max-width:94vw;max-height:84vh;object-fit:contain;background:#fff;border-radius:4px}
+#lb p{color:rgba(255,255,255,.82);font-size:14px}
+#lb .x{position:fixed;top:20px;right:26px;font-size:30px;color:#fff;line-height:1}
+
+/* ---------- aviso de tela pequena ---------- */
+#small{display:none;position:fixed;inset:0;z-index:400;background:var(--cream);
+  place-items:center;padding:32px;text-align:center}
+#small p{font-size:16px;line-height:1.5;color:var(--ink-2);max-width:40ch}
+#small b{display:block;font-size:22px;font-weight:900;color:var(--ink);margin-bottom:10px}
+@media (max-width:760px){#small{display:grid}}
+</style>
+</head>
+<body>
+
+<div id="deck">
+<div id="stage">
+
+  <!-- ===================== 01 · ABERTURA ===================== -->
+  <section class="slide red cover" data-t="A oportunidade">
+    <span class="curve tr"></span><span class="curve br"></span>
+    <div class="rail" data-rail></div>
+    <div class="head">
+      <div>
+        <div class="part anim">Panco e 75LAB · proposta integrada de presença no PDV</div>
+        <h1 class="anim" style="--d:1">A Panco já tem espaço na loja, agora esse espaço precisa trabalhar pela marca</h1>
+        <p class="lede anim" style="--d:2">A dor que fomos resolver é uma só: organizar todas as categorias da Panco no ponto de venda, sem criar complexidade nem investimento desnecessário para o Trade e para a loja</p>
+      </div>
+    </div>
+    <div class="body"></div>
+    <div class="foot">
+      <div class="sig"><img class="panco" src="assets/logo-panco.svg" alt="Panco"><img class="l75" src="assets/logo-75lab-antigo.png" alt="75 LAB"><span class="num" data-num></span></div>
+    </div>
+  </section>
+
+  <!-- ===================== 02 · O PERCURSO ===================== -->
+  <section class="slide cream" data-t="O percurso">
+    <div class="rail" data-rail></div>
+    <div class="head wide">
+      <div class="part anim">O percurso</div>
+      <h2 class="anim" style="--d:1">Esta conversa tem quatro passos, em treze minutos</h2>
+      <p class="lede full anim" style="--d:2">A dor que a gente encontrou, como responde, o que isso vira de escolha, e por onde dá para começar</p>
+    </div>
+    <div class="body top">
+      <div class="mapa">
+        <div class="mstep anim" style="--d:3">
+          <div class="n">Passo 01</div>
+          <h3>A dor</h3>
+          <p>Organizar todas as categorias da Panco no ponto de venda, com quatro faces que a gente viu na loja</p>
+          <p class="ref">Lâmina 3</p>
+        </div>
+        <span class="marrow anim" style="--d:4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13.5 6.5L20 12l-6.5 5.5"/></svg></span>
+        <div class="mstep wide anim" style="--d:5">
+          <div class="n">Passo 02</div>
+          <h3>A resposta, em três frentes</h3>
+          <div class="branches">
+            <div class="branch"><b>Na gôndola</b><span>Uma identificação por categoria, na peça pequena que cabe em qualquer móvel</span></div>
+            <div class="branch"><b>Nos pontos extras</b><span>Envelopar ilha, ponta e cabeceira para pôr uma categoria-alvo em destaque</span></div>
+            <div class="branch"><b>No controle</b><span>QR em cada peça, falando com o shopper e registrando o que está na loja</span></div>
+          </div>
+          <p class="ref">Lâminas 4 a 8</p>
+        </div>
+        <span class="marrow anim" style="--d:6"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13.5 6.5L20 12l-6.5 5.5"/></svg></span>
+        <div class="mstep anim" style="--d:7">
+          <div class="n">Passo 03</div>
+          <h3>A escolha</h3>
+          <p>Dentro da mesma verba, concentrar numa loja ou aparecer em muitas, com a conta por peça fora do deck</p>
+          <p class="ref">Lâmina 9</p>
+        </div>
+        <span class="marrow anim" style="--d:8"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13.5 6.5L20 12l-6.5 5.5"/></svg></span>
+        <div class="mstep fim anim" style="--d:9">
+          <div class="n">Passo 04</div>
+          <h3>O próximo passo</h3>
+          <p>Quatro formas de começar com a 75LAB, e nenhuma delas depende das outras</p>
+          <p class="ref">Lâmina 10</p>
+        </div>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="sig"><img class="panco" src="assets/logo-panco.svg" alt="Panco"><img class="l75" src="assets/logo-75lab-antigo.png" alt="75 LAB"><span class="num" data-num></span></div>
+    </div>
+  </section>
+
+  <!-- ===================== 03 · A DOR ===================== -->
+  <section class="slide" data-t="A dor">
+    <div class="rail" data-rail></div>
+    <div class="head wide">
+      <div class="part anim">01 · A dor</div>
+      <h2 class="anim" style="--d:1">A dor é organizar todas as categorias no ponto de venda</h2>
+      <p class="lede anim" style="--d:2">Quatro coisas que vimos na loja, e as quatro são a mesma: falta um sistema que diga onde cada categoria começa</p>
+    </div>
+    <div class="body">
+      <div class="visits">
+        <article class="visit anim" style="--d:3">
+          <figure class="zoom" data-img="assets/tv-gondola.webp" data-cap="Trade Visit 75LAB · gôndola do ponto natural"><img src="assets/tv-gondola.webp" alt="Gôndola longa e uniforme de produtos Panco em loja"></figure>
+          <span class="tagn"><i class="dn">01</i>A marca não se lê de longe</span>
+          <p>A gôndola é uma faixa contínua de produto. A dez metros, o bloco inteiro lê como uma coisa só</p>
+        </article>
+        <article class="visit anim" style="--d:4">
+          <figure class="zoom" data-img="assets/tv-mistura.webp" data-cap="Trade Visit 75LAB · bloco com categorias e marcas misturadas"><img src="assets/tv-mistura.webp" alt="Prateleira com categorias e marcas diferentes no mesmo bloco"></figure>
+          <span class="tagn"><i class="dn">02</i>As categorias se misturam</span>
+          <p>Pão, bolo, rosca e marca de terceiro no mesmo bloco. Nada separa uma categoria da outra</p>
+        </article>
+        <article class="visit anim" style="--d:5">
+          <figure class="zoom" data-img="assets/tv-aramado.webp" data-cap="Trade Visit 75LAB · exposição em aramado"><img src="assets/tv-aramado.webp" alt="Pães expostos em prateleira aramada com pouca luz"></figure>
+          <span class="tagn"><i class="dn">03</i>A exposição apaga o produto</span>
+          <p>Aramado e nicho na sombra. A embalagem perde cor onde a decisão acontece</p>
+        </article>
+        <article class="visit anim" style="--d:6">
+          <figure class="zoom" data-img="assets/tv-ponta.webp" data-cap="Trade Visit 75LAB · material de ponta no corredor"><img src="assets/tv-ponta.webp" alt="Displays Panco posicionados no fim do corredor"></figure>
+          <span class="tagn"><i class="dn">04</i>Falta peça para a gôndola</span>
+          <p>O material que existe é display de ponta. Na gôndola, onde está o giro, não existe peça</p>
+        </article>
+      </div>
+      <p class="srcline anim" style="--d:7">Registro fotográfico do Trade Visit da 75LAB, feito em loja antes desta proposta</p>
+    </div>
+    <div class="foot">
+      <div class="sig"><img class="panco" src="assets/logo-panco.svg" alt="Panco"><img class="l75" src="assets/logo-75lab-antigo.png" alt="75 LAB"><span class="num" data-num></span></div>
+    </div>
+  </section>
+
+  <!-- ===================== 03 · A RESPOSTA ===================== -->
+  <section class="slide cream" data-t="A resposta em três frentes">
+    <div class="rail" data-rail></div>
+    <div class="head wide">
+      <div class="part anim">02 · A resposta</div>
+      <h2 class="anim" style="--d:1">A 75LAB organiza as categorias em três frentes</h2>
+      <p class="lede anim" style="--d:2">A mesma lógica visual, aplicada em três lugares diferentes da operação</p>
+      <p class="dorleg anim" style="--d:2.5"><span><i class="dn">01</i>ler a marca de longe</span><span><i class="dn">02</i>separar as categorias</span><span><i class="dn">03</i>destacar o produto</span><span><i class="dn">04</i>ter peça na gôndola</span></p>
+    </div>
+    <div class="body">
+      <div class="ans">
+        <div class="acol anim" style="--d:3">
+          <div class="kicker">Frente 01</div>
+          <h3>Na gôndola</h3>
+          <p>Cada categoria ganha testeira, régua e wobbler próprios, e o shopper passa a ver onde uma começa e a outra termina</p>
+          <div class="ptags"><i class="dn">01</i><i class="dn">02</i><i class="dn">03</i><i class="dn">04</i></div>
+          <span class="shot zoom" data-img="assets/cat-paes.webp" data-cap="Peça de categoria Panco · Pães"><img src="assets/cat-paes.webp" alt="Peça de categoria Pães"></span>
+        </div>
+        <div class="acol anim" style="--d:4">
+          <div class="kicker">Frente 02</div>
+          <h3>Nos pontos extras</h3>
+          <p>Ilha, ponta e cabeceira que a loja já tem, envelopadas para pôr uma categoria-alvo em destaque</p>
+          <div class="ptags"><i class="dn">01</i><i class="dn">02</i></div>
+          <span class="shot zoom" data-img="assets/ponta-sobremesa.webp" data-cap="Ponta Sobremesa Panco · envelopamento com faca especial na testeira"><img src="assets/ponta-sobremesa.webp" alt="Ponta de gôndola envelopada da linha Sobremesa Panco"></span>
+        </div>
+        <div class="acol anim" style="--d:5">
+          <div class="kicker">Frente 03 · diferencial</div>
+          <h3>No controle</h3>
+          <p>QR em cada peça entrega conteúdo ao shopper e registra o que está instalado em cada loja</p>
+          <div class="ptags"><i class="dn">01</i><i class="dn">02</i><i class="dn">03</i><i class="dn">04</i></div>
+          <span class="shot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M6 6h1M17 6h1M6 17h1" stroke-width="2.4"/><path d="M14 14h3v3h-3zM20 14h1M14 20h1M18.5 18.5h2.5v2.5"/></svg></span>
+        </div>
+      </div>
+      <p class="srcline anim" style="--d:6;margin-top:8px">Repare que a linguagem muda de uma peça para outra: elas vêm de momentos diferentes e nenhuma saiu de briefing da Panco. O que se propõe aqui é a estrutura, não a mensagem</p>
+    </div>
+    <div class="foot">
+      <div class="sig"><img class="panco" src="assets/logo-panco.svg" alt="Panco"><img class="l75" src="assets/logo-75lab-antigo.png" alt="75 LAB"><span class="num" data-num></span></div>
+    </div>
+  </section>
+
+  <!-- ===================== 04 · FRENTE 01 · A GÔNDOLA ===================== -->
+  <section class="slide" data-t="Frente 01 · a gôndola">
+    <div class="rail" data-rail></div>
+    <div class="head wide">
+      <div class="part anim">03 · Frente 01 · na gôndola</div>
+      <h2 class="anim" style="--d:1">Na gôndola, cada categoria ganha a sua própria identificação</h2>
+      <p class="dorleg anim" style="--d:2"><span><i class="dn">01</i>ler a marca de longe</span><span><i class="dn">02</i>separar as categorias</span><span><i class="dn">03</i>destacar o produto</span><span><i class="dn">04</i>ter peça na gôndola</span></p>
+    </div>
+    <div class="body top">
+      <div class="front">
+        <p class="blocklab">Oito categorias da Panco, já desenhadas</p>
+        <div class="prow c8">
+          <figure class="zoom" data-img="assets/cat-paes.webp" data-cap="Peça de categoria Panco · Pães"><span class="im" style="height:106px"><img src="assets/cat-paes.webp" alt="Peça de categoria Pães"></span><figcaption><b>Pães</b></figcaption></figure>
+          <figure class="zoom" data-img="assets/cat-bolos.webp" data-cap="Peça de categoria Panco · Bolos"><span class="im" style="height:106px"><img src="assets/cat-bolos.webp" alt="Peça de categoria Bolos"></span><figcaption><b>Bolos</b></figcaption></figure>
+          <figure class="zoom" data-img="assets/cat-bolinhos.webp" data-cap="Peça de categoria Panco · Bolinhos"><span class="im" style="height:106px"><img src="assets/cat-bolinhos.webp" alt="Peça de categoria Bolinhos"></span><figcaption><b>Bolinhos</b></figcaption></figure>
+          <figure class="zoom" data-img="assets/cat-biscoitos.webp" data-cap="Peça de categoria Panco · Biscoitos"><span class="im" style="height:106px"><img src="assets/cat-biscoitos.webp" alt="Peça de categoria Biscoitos"></span><figcaption><b>Biscoitos</b></figcaption></figure>
+          <figure class="zoom" data-img="assets/cat-massas.webp" data-cap="Peça de categoria Panco · Massas instantâneas"><span class="im" style="height:106px"><img src="assets/cat-massas.webp" alt="Peça de categoria Massas instantâneas"></span><figcaption><b>Massas</b></figcaption></figure>
+          <figure class="zoom" data-img="assets/cat-salgadinhos.webp" data-cap="Peça de categoria Panco · Salgadinhos"><span class="im" style="height:106px"><img src="assets/cat-salgadinhos.webp" alt="Peça de categoria Salgadinhos"></span><figcaption><b>Salgadinhos</b></figcaption></figure>
+          <figure class="zoom" data-img="assets/cat-farinaceos.webp" data-cap="Peça de categoria Panco · Farináceos"><span class="im" style="height:106px"><img src="assets/cat-farinaceos.webp" alt="Peça de categoria Farináceos"></span><figcaption><b>Farináceos</b></figcaption></figure>
+          <figure class="zoom" data-img="assets/cat-panettones.webp" data-cap="Peça de categoria Panco · Panettones"><span class="im" style="height:106px"><img src="assets/cat-panettones.webp" alt="Peça de categoria Panettones"></span><figcaption><b>Panettones</b></figcaption></figure>
+        </div>
+        <p class="blocklab" style="margin-top:20px">Os formatos que levam essa arte <em>são feitos sob medida para o móvel da loja</em></p>
+        <div class="prow c8">
+          <figure class="zoom" data-img="assets/wobbler.webp" data-cap="Wobbler · 15 × 15 cm"><span class="im" style="height:98px"><img src="assets/wobbler.webp" alt="Wobbler Panco"></span><figcaption><b>Wobbler</b><i>15 × 15 cm</i></figcaption></figure>
+          <figure class="zoom" data-img="assets/stopper.webp" data-cap="Stopper · 15 × 25 cm"><span class="im" style="height:98px"><img src="assets/stopper.webp" alt="Stopper Panco"></span><figcaption><b>Stopper</b><i>15 × 25 cm</i></figcaption></figure>
+        </div>
+      </div>
+      <div class="frontnote anim" style="--d:5">
+        <p><b>É a peça mais barata do sistema</b> e a que aparece em mais lojas de uma vez, porque usa o móvel que já existe</p>
+        <p><b>As medidas são de referência.</b> Cada peça é ajustada ao móvel e ao formato de loja, porque gôndola de atacarejo e de supermercado de bairro não são a mesma coisa</p>
+        <p><b>A comunicação é de marcação</b> e muda de peça para peça porque nenhuma saiu de briefing. Ela mostra onde entra marca, categoria e preço, e a linguagem única vem com o escopo de marketing da Panco</p>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="sig"><img class="panco" src="assets/logo-panco.svg" alt="Panco"><img class="l75" src="assets/logo-75lab-antigo.png" alt="75 LAB"><span class="num" data-num></span></div>
+    </div>
+  </section>
+
+  <!-- ===================== 05 · FRENTE 02 · OS PONTOS EXTRAS ===================== -->
+  <section class="slide cream" data-t="Frente 02 · os pontos extras">
+    <div class="rail" data-rail></div>
+    <div class="head wide">
+      <div class="part anim">03 · Frente 02 · nos pontos extras</div>
+      <h2 class="anim" style="--d:1">Nos pontos extras, o envelopamento põe uma categoria em destaque</h2>
+      <p class="lede full anim" style="--d:2">Estruturas envelopáveis e fáceis de operar, para organizar a loja e deixar claro quais categorias a Panco tem ali</p>
+      <p class="dorleg anim" style="--d:3"><span><i class="dn">01</i>ler a marca de longe</span><span><i class="dn">02</i>separar as categorias</span><span><i class="dn">03</i>destacar o produto</span><span><i class="dn">04</i>ter peça na gôndola</span></p>
+    </div>
+    <div class="body top">
+      <div class="extra">
+        <div class="anim" style="--d:3">
+          <p class="blocklab">O caso: área de sobremesa <em>sem móvel novo</em></p>
+          <div class="casepair">
+            <figure class="zoom" data-img="assets/ponta-sobremesa.webp" data-cap="Ponta Sobremesa Panco · envelopamento com faca especial na testeira">
+              <img src="assets/ponta-sobremesa.webp" alt="Ponta de gôndola envelopada da linha Sobremesa Panco, vista frontal">
+            </figure>
+            <figure class="zoom" data-img="assets/ponta-sobremesa-loja.webp" data-cap="Ponta Sobremesa Panco · aplicação em loja">
+              <img src="assets/ponta-sobremesa-loja.webp" alt="Ponta de gôndola envelopada da linha Sobremesa Panco, aplicada em loja">
+            </figure>
+          </div>
+        </div>
+        <div class="anim" style="--d:4">
+          <p class="blocklab">Estruturas para envelopar, <em>que dão território a uma categoria</em></p>
+          <div class="prow c6">
+            <figure class="zoom" data-img="assets/cubo.webp" data-cap="Cubo · 45 × 45 cm"><span class="im" style="height:118px"><img src="assets/cubo.webp" alt="Cubo Panco"></span><figcaption><b>Cubo</b><i>45 × 45 cm</i></figcaption></figure>
+            <figure class="zoom" data-img="assets/modulo-central.webp" data-cap="Módulo central · 0,70 × 0,50 × 1,60 m"><span class="im" style="height:118px"><img src="assets/modulo-central.webp" alt="Módulo central Panco"></span><figcaption><b>Módulo central</b><i>0,70 × 0,50 m</i></figcaption></figure>
+            <figure class="zoom" data-img="assets/modulo-cabeceira.webp" data-cap="Módulo cabeceira · 1,00 × 0,50 × 1,60 m"><span class="im" style="height:118px"><img src="assets/modulo-cabeceira.webp" alt="Módulo de cabeceira Panco"></span><figcaption><b>Cabeceira</b><i>1,00 × 0,50 m</i></figcaption></figure>
+            <figure class="zoom" data-img="assets/ilha-1-palete.webp" data-cap="Ilha de 1 palete · 1,20 × 1,00 × 1,60 m"><span class="im" style="height:118px"><img src="assets/ilha-1-palete.webp" alt="Ilha Panco de um palete"></span><figcaption><b>Ilha 1 palete</b><i>1,20 × 1,00 m</i></figcaption></figure>
+            <figure class="zoom" data-img="assets/ilha-2-paletes.webp" data-cap="Ilha de 2 paletes · 2,40 × 1,00 × 1,60 m"><span class="im" style="height:118px"><img src="assets/ilha-2-paletes.webp" alt="Ilha Panco de dois paletes"></span><figcaption><b>Ilha 2 paletes</b><i>2,40 × 1,00 m</i></figcaption></figure>
+            <figure class="zoom" data-img="assets/portico.webp" data-cap="Pórtico modular, montado com as mesmas colunas da ilha"><span class="im" style="height:118px"><img src="assets/portico.webp" alt="Pórtico modular Panco"></span><figcaption><b>Pórtico</b><i>por vão de loja</i></figcaption></figure>
+          </div>
+        </div>
+      </div>
+      <div class="frontnote anim" style="--d:5">
+        <p><b>Sobremesa foi a categoria do desafio, não a regra.</b> Se o contexto da loja pedir pães, bolos ou biscoitos, o movimento é o mesmo: muda o KV e o mix, não a estrutura</p>
+        <p><b>São simples de montar, abastecer e trocar.</b> Mudar a categoria em destaque é refazer o envelopamento, não a estrutura, e as medidas são de referência porque cada peça se ajusta ao ponto</p>
+        <p><b>A comunicação é de marcação</b> e por isso não conversa com a das outras peças. O que vale olhar aqui é a estrutura e o acabamento que a faca dá na testeira</p>
+      </div>
+    </div>
+    <div class="foot">
+      <p class="soWhat"><em>O que isso muda</em><span>A Panco escolhe qual categoria precisa de empurrão, loja a loja, sem refazer o projeto</span></p>
+      <div class="sig"><img class="panco" src="assets/logo-panco.svg" alt="Panco"><img class="l75" src="assets/logo-75lab-antigo.png" alt="75 LAB"><span class="num" data-num></span></div>
+    </div>
+  </section>
+
+  <!-- ===================== 06 · A ESTAÇÃO ===================== -->
+  <section class="slide" data-t="A Estação Café da Manhã">
+    <div class="rail" data-rail></div>
+    <div class="head wide">
+      <div class="part anim">03 · Frente 02 · o caso máximo</div>
+      <h2 class="anim" style="--d:1">A Estação Café da Manhã leva esse movimento ao máximo</h2>
+      <p class="dorleg anim" style="--d:1.5"><span><i class="dn">01</i>ler a marca de longe</span><span><i class="dn">02</i>separar as categorias</span><span><i class="dn">03</i>destacar o produto</span><span><i class="dn">04</i>ter peça na gôndola</span></p>
+    </div>
+    <div class="body">
+      <div class="showcase">
+        <span class="hero zoom anim" style="--d:2" data-img="assets/estacao.webp" data-cap="Estação Café da Manhã Panco · render do time de design 75LAB">
+          <img src="assets/estacao.webp" alt="Render da Estação Café da Manhã Panco">
+        </span>
+        <div class="pts">
+          <div class="pt anim" style="--d:3"><u><i class="dn">01</i></u><b>Lida a dez metros</b><span>Marca e ocasião reconhecidas antes de o shopper chegar perto</span></div>
+          <div class="pt anim" style="--d:4"><u><i class="dn">02</i></u><b>Organiza o mix</b><span>O produto se arruma por momento de consumo, não por código de SKU</span></div>
+          <div class="pt anim" style="--d:5"><u><i class="dn">03</i></u><b>Ilumina e destaca</b><span>Prateleira iluminada e a Bisnaguinha com a maior massa de frentes</span></div>
+          <div class="pt anim" style="--d:6"><u><i class="dn">04</i></u><b>Opera por trás</b><span>Abastece com palete, guarda reposição em gaveta e move com paleteira</span></div>
+          <div class="insets anim" style="--d:7">
+            <figure class="zoom" data-img="assets/estacao-estrutura.webp" data-cap="Estação Café da Manhã · estrutura, com acesso traseiro, gavetas e para-choque"><span class="im"><img src="assets/estacao-estrutura.webp" alt="Vista de estrutura da estação"></span><figcaption>A estrutura por dentro</figcaption></figure>
+            <figure class="zoom" data-img="assets/estacao-tradicao.webp" data-cap="Estação Café da Manhã · versão tradição, para público adulto"><span class="im"><img src="assets/estacao-tradicao.webp" alt="Estação na versão tradição"></span><figcaption>A mesma estrutura, em tom adulto</figcaption></figure>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="foot">
+      <p class="soWhat"><em>O que isso muda</em><span>É a peça que responde às quatro dores de uma vez, e por isso também é a que concentra mais investimento numa loja só</span></p>
+      <div class="sig"><img class="panco" src="assets/logo-panco.svg" alt="Panco"><img class="l75" src="assets/logo-75lab-antigo.png" alt="75 LAB"><span class="num" data-num></span></div>
+    </div>
+  </section>
+
+  <!-- ===================== 07 · FRENTE 03 · O QR ===================== -->
+  <section class="slide cream" data-t="Frente 03 · o QR">
+    <div class="rail" data-rail></div>
+    <div class="head wide">
+      <div class="part anim">03 · Frente 03 · no controle</div>
+      <h2 class="anim" style="--d:1">O mesmo QR fala com o shopper e registra a peça na loja</h2>
+      <p class="lede anim" style="--d:2">Duas funções diferentes, que podem conviver na mesma peça</p>
+    </div>
+    <div class="body top">
+      <div class="qr2">
+        <div class="qrcol a anim" style="--d:3">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><rect x="9.5" y="6" width="5" height="5" rx="1"/><path d="M9.5 14h5M9.5 17h3"/></svg></span>
+          <div class="kicker">Na frente da peça, virado para quem compra</div>
+          <h3>Entrega conteúdo na troca</h3>
+          <ul>
+            <li>O shopper escaneia e <b>recebe algo de volta</b>: receita, modo de preparo, promoção ou cupom</li>
+            <li>A peça deixa de ser só suporte e <b>vira mídia</b>, com conteúdo que a Panco troca quando quiser</li>
+            <li>Cada leitura mostra <b>qual categoria desperta interesse</b>, e em qual loja</li>
+          </ul>
+        </div>
+        <div class="qrcol b anim" style="--d:4">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-12a2 2 0 0 0-2-2h-2"/><rect x="9" y="2.5" width="6" height="4" rx="1.2"/><path d="M9 13.6l2.2 2.2 4-4.4"/></svg></span>
+          <div class="kicker">Atrás da peça ou na etiqueta, virado para quem executa</div>
+          <h3>Registra a positivação na hora</h3>
+          <ul>
+            <li>O promotor escaneia <b>no momento em que positiva o material</b>, e a positivação deixa de ser relato</li>
+            <li>Entra <b>loja, data, foto e estado da peça</b>, sem planilha e sem depender de memória</li>
+            <li>A Panco vê o parque inteiro: <b>onde cada peça está</b> e o que já precisa de troca</li>
+          </ul>
+        </div>
+      </div>
+      <p class="qrnote anim" style="--d:5"><b>As duas funções cabem na mesma peça.</b> E o rastreio funciona em material produzido com a 75LAB ou com qualquer outro fornecedor, então serve para medir a operação inteira e não só a nossa. Entra como escopo opcional por frente, com orçamento à parte</p>
+    </div>
+    <div class="foot">
+      <div class="sig"><img class="panco" src="assets/logo-panco.svg" alt="Panco"><img class="l75" src="assets/logo-75lab-antigo.png" alt="75 LAB"><span class="num" data-num></span></div>
+    </div>
+  </section>
+
+  <!-- ===================== 08 · A ESCOLHA ===================== -->
+  <section class="slide" data-t="Concentrar ou espalhar">
+    <div class="rail" data-rail></div>
+    <div class="head wide">
+      <div class="part anim">04 · A escolha</div>
+      <h2 class="anim" style="--d:1">Dentro da mesma verba, dá para concentrar numa loja ou aparecer em muitas</h2>
+      <p class="lede full anim" style="--d:2">O time já resolveu um desafio assim: para criar área de sobremesa, a saída foi envelopar a ponta que a loja já tem</p>
+      <p class="dorleg anim" style="--d:2.5"><span><i class="dn">01</i>ler a marca de longe</span><span><i class="dn">02</i>separar as categorias</span><span><i class="dn">03</i>destacar o produto</span><span><i class="dn">04</i>ter peça na gôndola</span></p>
+    </div>
+    <div class="body top">
+      <div class="pick">
+        <div class="pcol a anim" style="--d:3">
+          <h3>Concentrar</h3>
+          <p class="sub">Peça âncora, com estrutura própria, projetada do zero</p>
+          <div class="pshots">
+            <figure class="zoom" data-img="assets/estacao-2.webp" data-cap="Estação Café da Manhã · peça âncora com estrutura própria">
+              <img src="assets/estacao-2.webp" alt="Estação Café da Manhã Panco">
+            </figure>
+          </div>
+          <div class="ptags"><i class="dn">01</i><i class="dn">02</i><i class="dn">03</i><i class="dn">04</i></div>
+          <ul>
+            <li>Responde às quatro dores numa posição só de loja</li>
+            <li>Pede projeto executivo, protótipo e homologação</li>
+            <li>Chega a poucas lojas por ciclo</li>
+          </ul>
+        </div>
+        <div class="pcol b anim" style="--d:4">
+          <h3>Espalhar</h3>
+          <p class="sub">Ponta envelopada, em qualquer categoria</p>
+          <div class="pshots">
+            <figure class="zoom" data-img="assets/ponta-sobremesa.webp" data-cap="Ponta Sobremesa Panco · envelopamento com faca especial na testeira">
+              <img src="assets/ponta-sobremesa.webp" alt="Ponta de gôndola envelopada da linha Sobremesa Panco, vista frontal">
+            </figure>
+            <figure class="zoom" data-img="assets/ponta-sobremesa-loja.webp" data-cap="Ponta Sobremesa Panco · aplicação em loja">
+              <img src="assets/ponta-sobremesa-loja.webp" alt="Ponta de gôndola envelopada da linha Sobremesa Panco, aplicada em loja">
+            </figure>
+          </div>
+          <div class="ptags"><i class="dn">01</i><i class="dn">02</i></div>
+          <ul>
+            <li>Dá bloco e testeira à categoria, sem móvel novo</li>
+            <li>Adesivo sobre o móvel da loja, com faca especial na testeira</li>
+            <li>Serve para qualquer linha, muda o KV e o mix, não a estrutura</li>
+            <li>Chega a muitas lojas no mesmo ciclo, e troca rápido</li>
+          </ul>
+        </div>
+      </div>
+      <div class="picknote anim" style="--d:5">
+        <p><b>A ponta de sobremesa não é exercício.</b> Foi a resposta do time a um desafio real e já sai num formato que a loja executa</p>
+        <p><b>Sobremesa foi a categoria do desafio, não a regra.</b> Se o contexto da loja pedir pães, bolos ou biscoitos, o movimento é o mesmo</p>
+        <p><b>A conta de cada rota</b> sai por peça, por medida e por tiragem, e vai no documento comercial</p>
+      </div>
+    </div>
+    <div class="foot">
+      <p class="soWhat"><em>O que isso muda</em><span>Não é peça cara contra peça barata, é profundidade numa loja contra alcance na rede, e essa escolha é da Panco</span></p>
+      <div class="sig"><img class="panco" src="assets/logo-panco.svg" alt="Panco"><img class="l75" src="assets/logo-75lab-antigo.png" alt="75 LAB"><span class="num" data-num></span></div>
+    </div>
+  </section>
+
+  <!-- ===================== 09 · O PRÓXIMO PASSO ===================== -->
+  <section class="slide red" data-t="O próximo passo">
+    <span class="curve tr"></span><span class="curve br"></span>
+    <div class="rail" data-rail></div>
+    <div class="head wide">
+      <div class="part anim">05 · O próximo passo</div>
+      <h2 class="anim" style="--d:1">São quatro formas de começar com a 75LAB,<br>e nenhuma depende das outras</h2>
+      <p class="lede anim" style="--d:2">Não precisa ser a maior. Precisa ser a que a Panco consegue destravar primeiro</p>
+    </div>
+    <div class="body top">
+      <div class="doors">
+        <div class="door anim" style="--d:3">
+          <span class="k">A</span>
+          <b>Projeto pontual</b>
+          <span>Escopo, entregáveis, prazo e orçamento fechados para uma entrega só</span>
+          <em><i>o caminho mais curto</i></em>
+        </div>
+        <div class="door anim" style="--d:4">
+          <span class="k">B</span>
+          <b>Fee mensal</b>
+          <span>Planejamento recorrente de Trade e PDV, dentro de escopo e capacidade acordados</span>
+          <em><i>quando a demanda é contínua</i></em>
+        </div>
+        <div class="door anim" style="--d:5">
+          <span class="k">C</span>
+          <b>Produção das peças</b>
+          <span>A Panco traz a arte que já tem e a gente produz pela nossa rede de parceiros, respondendo pelo resultado</span>
+          <em><i>sem projeto novo</i></em>
+        </div>
+        <div class="door anim" style="--d:6">
+          <span class="k">D</span>
+          <b>Rastreio por QR</b>
+          <span>Funciona no material que a Panco imprimir em qualquer gráfica, inclusive fora da nossa rede</span>
+          <em><i>plug and play</i></em>
+        </div>
+      </div>
+      <div class="close4 anim" style="--d:7">
+        <div><b>Quem aprova</b><span>Sponsor na Panco e interlocutor em Compras</span></div>
+        <div><b>Parâmetro de verba</b><span>Faixa de investimento ou método de orçamento</span></div>
+        <div><b>Próximo marco</b><span>Data e o que precisa estar pronto nela</span></div>
+      </div>
+      <div class="fineprint anim" style="--d:8">
+        <p><b>O que não entra automaticamente no fee:</b> produção física, matéria-prima, instalação, logística e terceiros. Esses itens vão para o contrato ou para orçamento à parte</p>
+        <p><b>O QR não depende de nenhuma das outras três.</b> Ele pode entrar sozinho, no material que a Panco já produz hoje, com a gráfica que já produz hoje</p>
+      </div>
+    </div>
+    <div class="foot bye">
+      <span class="thx">Obrigado</span>
+      <div class="who">
+        <b>Daniel Coimbra</b>
+        <span>Diretor Administrativo e Comercial</span>
+        <span>daniel.coimbra@75lab.com.br · 11 99127-0939</span>
+      </div>
+      <div class="who">
+        <b>Vanessa Morelli</b>
+        <span>Comercial</span>
+        <span>11 98398-2803</span>
+      </div>
+      <div class="who">
+        <b>75 LAB</b>
+        <span>Aceleradora de trade marketing</span>
+        <span>São Paulo · 75lab.com.br</span>
+      </div>
+      <div class="sig"><img class="panco" src="assets/logo-panco.svg" alt="Panco"><img class="l75" src="assets/logo-75lab-antigo.png" alt="75 LAB"><span class="num" data-num></span></div>
+    </div>
+  </section>
+  <p id="hint">setas para navegar · M abre o índice · P abre as outras oportunidades</p>
+  <div class="nav">
+    <button id="prev" aria-label="Lâmina anterior">‹</button>
+    <button id="next" aria-label="Próxima lâmina">›</button>
+  </div>
+
+</div>
+</div>
+
+<!-- ===================== PARKING LOT, fora do percurso ===================== -->
+<div class="ov" id="park" role="dialog" aria-modal="true" aria-label="Outras oportunidades">
+  <div class="ovbox">
+    <button class="x js-close" aria-label="Fechar">×</button>
+    <div class="part">Fora do percurso da apresentação</div>
+    <h2>Outras oportunidades para construirmos juntos</h2>
+    <p class="lede">Três frentes que apareceram em conversa anterior e que valem uma discussão própria, fora da decisão de hoje.</p>
+    <div class="opps">
+      <div class="opp">
+        <b>Embalagem e redesenho de embalagem</b>
+        <p>Revisão de arquitetura de marca na embalagem, hierarquia de linha e leitura na gôndola.</p>
+      </div>
+      <div class="opp">
+        <b>Panetone e projetos sazonais de Natal</b>
+        <p>Embalagem, enxoval de PDV e exposição sazonal, com calendário próprio e janela curta.</p>
+      </div>
+      <div class="opp">
+        <b>Ativações promocionais e portfólio</b>
+        <p>Mecânicas promocionais, lançamento de linha e novas oportunidades de portfólio no ponto de venda.</p>
+      </div>
+    </div>
+    <p class="ovline">Os três são oportunidades a explorar com a Panco, não briefings confirmados</p>
+  </div>
+</div>
+
+<!-- ===================== ÍNDICE ===================== -->
+<div class="ov" id="menu" role="dialog" aria-modal="true" aria-label="Índice">
+  <div class="ovbox">
+    <button class="x js-close" aria-label="Fechar">×</button>
+    <div class="part">Percurso</div>
+    <h2>Dez lâminas, treze minutos</h2>
+    <ul class="idx" id="idx"></ul>
+  </div>
+</div>
+
+<!-- ===================== LIGHTBOX ===================== -->
+<div class="ov" id="lb" role="dialog" aria-modal="true" aria-label="Imagem ampliada">
+  <button class="x js-close" aria-label="Fechar">×</button>
+  <div class="wrap"><img id="lbImg" alt=""><p id="lbCap"></p></div>
+</div>
+
+<div id="small"><div><b>Abra no computador</b><p>Esta apresentação foi montada para tela de reunião, em 16 por 9. Num celular ela perde a leitura que o projeto defende.</p></div></div>
+
+<script>
+(function(){
+  var stage = document.getElementById('stage');
+  var slides = [].slice.call(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var cur = 0;
+
+  /* ---- auto-fit do palco ---- */
+  function fit(){
+    var s = Math.min(window.innerWidth / 1600, window.innerHeight / 900);
+    stage.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+  }
+  window.addEventListener('resize', fit);
+  fit();
+
+  /* ---- trilho e numeração ---- */
+  slides.forEach(function(sl, i){
+    var rail = sl.querySelector('[data-rail]');
+    var ticks = '';
+    for (var k = 0; k < total; k++){
+      ticks += '<i class="' + (k === i ? 'now' : (k < i ? 'done' : '')) + '"></i>';
+    }
+    rail.innerHTML = '<b>' + String(i + 1).padStart(2, '0') + '</b><span class="ticks">' + ticks + '</span>';
+    sl.querySelector('[data-num]').textContent = String(i + 1).padStart(2, '0') + ' / ' + String(total).padStart(2, '0');
+  });
+
+  /* ---- navegação ---- */
+  var prev = document.getElementById('prev');
+  var next = document.getElementById('next');
+  var hint = document.getElementById('hint');
+
+  function show(n){
+    n = Math.max(0, Math.min(total - 1, n));
+    if (n === cur) return;
+    slides[cur].classList.remove('on');
+    cur = n;
+    slides[cur].classList.add('on');
+    stage.classList.toggle('onred', slides[cur].classList.contains('red'));
+    prev.disabled = cur === 0;
+    next.disabled = cur === total - 1;
+    [].forEach.call(document.querySelectorAll('#idx button'), function(b, i){
+      b.classList.toggle('cur', i === cur);
+    });
+    if (cur > 0 && hint) { hint.style.opacity = '0'; }
+  }
+  slides[0].classList.add('on');
+  stage.classList.toggle('onred', slides[0].classList.contains('red'));
+  prev.disabled = true;
+
+  prev.addEventListener('click', function(){ show(cur - 1); });
+  next.addEventListener('click', function(){ show(cur + 1); });
+
+  /* ---- overlays ---- */
+  var park = document.getElementById('park');
+  var menu = document.getElementById('menu');
+  var lb = document.getElementById('lb');
+  function fecha(){ [park, menu, lb].forEach(function(o){ o.classList.remove('on'); }); }
+  function abre(o){ fecha(); o.classList.add('on'); }
+  [].forEach.call(document.querySelectorAll('.js-close'), function(b){
+    b.addEventListener('click', fecha);
+  });
+  [park, menu, lb].forEach(function(o){
+    o.addEventListener('click', function(e){ if (e.target === o) fecha(); });
+  });
+
+  /* ---- índice ---- */
+  var idx = document.getElementById('idx');
+  slides.forEach(function(sl, i){
+    var li = document.createElement('li');
+    var b = document.createElement('button');
+    b.innerHTML = '<i>' + String(i + 1).padStart(2, '0') + '</i><span>' + sl.dataset.t + '</span>';
+    b.addEventListener('click', function(){ fecha(); show(i); });
+    li.appendChild(b); idx.appendChild(li);
+  });
+  document.querySelector('#idx button').classList.add('cur');
+
+  /* ---- lightbox, alcançável também pelo teclado ---- */
+  function amplia(z){
+    document.getElementById('lbImg').src = z.dataset.img;
+    document.getElementById('lbImg').alt = z.dataset.cap || '';
+    document.getElementById('lbCap').textContent = z.dataset.cap || '';
+    abre(lb);
+  }
+  var LUPA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" '
+    + 'stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.4"/><path d="M15.4 15.4L21 21"/></svg>';
+  [].forEach.call(document.querySelectorAll('.zoom[data-img]'), function(z){
+    z.setAttribute('tabindex', '0');
+    z.setAttribute('role', 'button');
+    z.setAttribute('aria-label', 'Ampliar: ' + (z.dataset.cap || 'imagem'));
+    var lupa = document.createElement('span');
+    lupa.className = 'zi';
+    lupa.innerHTML = LUPA;
+    z.appendChild(lupa);
+    z.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); amplia(z); }
+    });
+  });
+  document.addEventListener('click', function(e){
+    var z = e.target.closest ? e.target.closest('.zoom[data-img]') : null;
+    if (z) amplia(z);
+  });
+
+  /* ---- teclado ---- */
+  document.addEventListener('keydown', function(e){
+    var aberto = park.classList.contains('on') || menu.classList.contains('on') || lb.classList.contains('on');
+    if (e.key === 'Escape'){ fecha(); return; }
+    if (aberto && e.key !== 'm' && e.key !== 'M' && e.key !== 'p' && e.key !== 'P') return;
+    switch (e.key){
+      case 'ArrowRight': case 'PageDown': case ' ': e.preventDefault(); show(cur + 1); break;
+      case 'ArrowLeft': case 'PageUp': e.preventDefault(); show(cur - 1); break;
+      case 'Home': e.preventDefault(); show(0); break;
+      case 'End': e.preventDefault(); show(total - 1); break;
+      case 'm': case 'M': menu.classList.contains('on') ? fecha() : abre(menu); break;
+      case 'p': case 'P': park.classList.contains('on') ? fecha() : abre(park); break;
+    }
+  });
+})();
+</script>
+</body>
+</html>
