@@ -380,7 +380,7 @@ svg.ligas .apaga{opacity:.12}
 .qrbox a{display:inline-block;margin-top:9px;font-size:12px;font-weight:900;color:var(--yellow);text-decoration:none;letter-spacing:.04em}
 
 /* ---------- 11 · demo de QR ---------- */
-.qr-t .qrd{display:grid;grid-template-columns:330px 320px 1fr;gap:46px;flex:1;min-height:0;align-items:center}
+.qr-t .qrd{display:grid;grid-template-columns:330px 300px 1fr;gap:46px;flex:1;min-height:0;align-items:center}
 .escaneie{display:flex;flex-direction:column;align-items:flex-start}
 .escaneie .qr{width:230px;height:230px;background:#fff;border-radius:18px;padding:16px;position:relative;box-shadow:0 18px 50px rgba(35,31,32,.12)}
 .escaneie .qr svg{width:100%;height:100%;display:block}
@@ -394,9 +394,11 @@ svg.ligas .apaga{opacity:.12}
 .escaneie b{font-size:24px;font-weight:1000;letter-spacing:-.022em;margin-top:26px;line-height:1.1}
 .escaneie p{font-size:14px;line-height:1.45;color:var(--ink-2);margin-top:8px}
 .escaneie a{margin-top:10px;font-size:12.5px;font-weight:900;color:var(--blue);text-decoration:none;letter-spacing:.03em}
-.celular{position:relative;width:268px;height:520px;border-radius:42px;overflow:hidden;background:#151313;padding:12px;box-shadow:0 30px 70px rgba(35,31,32,.3);justify-self:center}
-.celular iframe{position:absolute;left:12px;top:12px;width:375px;height:758px;border:0;border-radius:52px;background:#fff;transform:scale(.6453);transform-origin:0 0}
-.celular::before{content:"";position:absolute;left:50%;top:18px;width:80px;height:22px;margin-left:-40px;border-radius:12px;background:#151313;z-index:2}
+.fone-col{display:flex;flex-direction:column;align-items:center;gap:14px}
+.celular{position:relative;width:256px;height:500px;border-radius:40px;background:#151313;padding:10px;box-shadow:0 30px 70px rgba(35,31,32,.3)}
+.celular img{position:absolute;left:10px;top:10px;width:236px;height:472px;object-fit:cover;object-position:top;border-radius:31px;opacity:0;transition:opacity .5s}
+.celular img.on{opacity:1}
+.legenda-fone{font-size:13.5px;font-weight:900;color:var(--ink-2);text-align:center;max-width:300px;min-height:20px}
 .funcoes{display:flex;flex-direction:column;gap:14px}
 .fn{position:relative;text-align:left;background:#fff;border-radius:16px;padding:18px 20px 18px;border:2px solid transparent;overflow:hidden;transition:.3s}
 .fn .cab{display:flex;align-items:center;gap:12px;margin-bottom:10px}
@@ -557,8 +559,6 @@ body.pdf .prat figure,body.pdf .hs{opacity:1;transform:none}
 body.pdf .ic svg *,body.pdf svg.ligas path{stroke-dashoffset:0}
 body.pdf svg.ligas circle{opacity:1}
 body.pdf .trilha-linha i{width:100%}
-body.pdf .celular iframe{display:none}
-body.pdf .celular{background:#151313 url(assets/qr-demo-tela.jpg) center 12px/306px auto no-repeat}
 </style>
 </head>
 <body>
@@ -869,27 +869,36 @@ body.pdf .celular{background:#151313 url(assets/qr-demo-tela.jpg) center 12px/30
     <span class="pdfnum">10</span>
   </section>
 
-  <!-- ===================== 11 · DEMO DO QR ===================== -->
-  <section class="tela qr-t" data-t="Frente 03 · o QR, ao vivo" data-cap="02 · A resposta">
+  <!-- ===================== 11 · O QR, NO SISTEMA DA 75 LAB ===================== -->
+  <section class="tela qr-t" data-t="Frente 03 · o QR no nosso sistema" data-cap="02 · A resposta">
     <div class="eyebrow anima"><b>F3</b>Frente 03 · no controle</div>
-    <h2 class="anima" style="--d:1">O mesmo QR <em>fala com o shopper</em> e <em>registra a peça</em> na loja</h2>
+    <h2 class="anima" style="--d:1">O mesmo QR <em>abre a página da peça</em> e <em>registra a execução</em> na loja</h2>
     <div class="miolo qrd">
       <div class="escaneie anima" style="--d:2">
         <div class="qr"><div id="qrDemo"></div><i class="mira"></i><i class="canto c1"></i><i class="canto c2"></i><i class="canto c3"></i><i class="canto c4"></i></div>
-        <b>Escaneie agora, é uma peça de demonstração</b>
-        <p>Este é o QR de uma testeira de Pães. Abra como shopper ou como promotor e veja as duas pontas funcionando.</p>
-        <a href="qr/?peca=testeira-paes" target="_blank" rel="noopener">Abrir a demonstração no navegador ↗</a>
+        <b>Escaneie agora: é a página real das peças Panco</b>
+        <p>Já está no sistema de QR da 75 LAB, com as nove peças desta proposta. Escolha uma peça e veja a página que o promotor recebe na loja.</p>
+        <a href="https://projetos.75lab.com.br/produtos/panco-pecas-pdv/" target="_blank" rel="noopener">projetos.75lab.com.br/produtos/panco-pecas-pdv ↗</a>
       </div>
-      <div class="celular anima" style="--d:3"><iframe id="fone" title="Demonstração do QR no celular" src="qr/?peca=testeira-paes&amp;moldura=1"></iframe></div>
+      <div class="fone-col anima" style="--d:3">
+        <div class="celular" id="fone">
+          <img src="assets/sis-escolha.webp" alt="Sistema de QR 75 LAB: escolha das peças da loja" class="on">
+          <img src="assets/sis-pagina.webp" alt="Sistema de QR 75 LAB: página do enxoval Panco">
+          <img src="assets/sis-categoria.webp" alt="Sistema de QR 75 LAB: página da peça de categoria">
+          <img src="assets/sis-peca.webp" alt="Sistema de QR 75 LAB: página da Ilha de 1 palete">
+          <img src="assets/sis-registro.webp" alt="Sistema de QR 75 LAB: registro da instalação">
+        </div>
+        <p class="legenda-fone" id="foneTxt">1 · O promotor escolhe as peças desta loja</p>
+      </div>
       <div class="funcoes anima" style="--d:4">
-        <button class="fn a on" data-modo="shopper">
-          <div class="cab"><i class="ic" data-ic="celular"></i><div><div class="k">Na frente da peça, para quem compra</div><h3>Entrega conteúdo na troca</h3></div></div>
-          <ul><li>O shopper escaneia e <b>recebe algo de volta</b>: receita, preparo, promoção.</li><li>A peça <b>vira mídia</b>, com conteúdo que a Panco troca quando quiser.</li><li>Cada leitura mostra <b>qual categoria desperta interesse</b>, e em qual loja.</li></ul>
+        <button class="fn a on" data-telas="0,1,2,3">
+          <div class="cab"><i class="ic" data-ic="celular"></i><div><div class="k">Na peça, para quem está na loja</div><h3>Abre o conteúdo da peça</h3></div></div>
+          <ul><li>Para que serve, <b>passo a passo de montagem</b>, medidas, checklist e AR.</li><li>A página é da Panco e <b>troca de conteúdo quando quiser</b>, sem reimprimir o QR.</li><li>O mesmo endereço pode receber <b>conteúdo para o shopper</b>, como receita e promoção.</li></ul>
           <i class="tempo-b"></i>
         </button>
-        <button class="fn b" data-modo="promotor">
-          <div class="cab"><i class="ic" data-ic="prancheta"></i><div><div class="k">Atrás da peça, para quem executa</div><h3>Registra a positivação na hora</h3></div></div>
-          <ul><li>O promotor escaneia <b>no momento em que positiva</b>, e a positivação deixa de ser relato.</li><li>Entra <b>loja, data, foto e estado da peça</b>, sem planilha.</li><li>A Panco vê <b>onde cada peça está</b> e o que já precisa de troca.</li></ul>
+        <button class="fn b" data-telas="4">
+          <div class="cab"><i class="ic" data-ic="prancheta"></i><div><div class="k">No fim da instalação, para quem executa</div><h3>Registra a positivação na hora</h3></div></div>
+          <ul><li>Entram <b>promotor, rede, loja, peças, GPS e foto da fachada</b>, sem planilha.</li><li>Cai no <b>painel da 75 LAB</b>: mapa, fachadas, ranking por rede e cidade, exportação para Excel.</li><li>A Panco acompanha por um <b>link próprio, ao vivo</b>, sem login.</li></ul>
           <i class="tempo-b"></i>
         </button>
         <p class="qrnota"><b>Funciona em qualquer material,</b> produzido com a 75 LAB ou com outro fornecedor. Serve para medir a operação inteira, e entra como escopo opcional por frente.</p>
@@ -1224,11 +1233,15 @@ body.pdf .celular{background:#151313 url(assets/qr-demo-tela.jpg) center 12px/30
   }
   document.querySelectorAll('.rota').forEach(function(r){ r.addEventListener('click', function(e){ if (!e.target.closest('.zoom')) rota(r); }); });
 
-  // 11: o celular segue a função escolhida
-  var fone = document.getElementById('fone');
+  // 11: o celular mostra as telas reais do sistema de QR, na ordem do fluxo
+  var FONE_TXT = ['1 · O promotor escolhe as peças desta loja', '2 · Abre a página do enxoval Panco', '3 · Vê a peça: objetivo, montagem, medidas', '4 · Cada estrutura tem AR em tamanho real', '5 · No fim, registra loja, foto e localização'];
+  var fone = document.getElementById('fone'), foneImgs = [].slice.call(fone.querySelectorAll('img')), foneTimer = null;
+  function telaFone(k){ foneImgs.forEach(function(im, n){ im.classList.toggle('on', n === k); }); document.getElementById('foneTxt').textContent = FONE_TXT[k]; }
   function modo(fn){
     document.querySelectorAll('.fn').forEach(function(x){ x.classList.toggle('on', x === fn); });
-    try { fone.contentWindow.postMessage({modo: fn.dataset.modo}, '*'); } catch(e){}
+    var lista = fn.dataset.telas.split(',').map(Number), k = 0;
+    clearInterval(foneTimer); telaFone(lista[0]);
+    if (lista.length > 1 && !PDF) foneTimer = setInterval(function(){ k = (k + 1) % lista.length; telaFone(lista[k]); }, 2200);
   }
   document.querySelectorAll('.fn').forEach(function(fn){ fn.addEventListener('click', function(){ modo(fn); }); });
 
@@ -1268,7 +1281,7 @@ body.pdf .celular{background:#151313 url(assets/qr-demo-tela.jpg) center 12px/30
   /* ---------- QR codes ---------- */
   function qrSvg(url){ var q = qrcode(0, 'M'); q.addData(url); q.make(); return q.createSvgTag({cellSize:6, margin:0, scalable:true}); }
   document.getElementById('qrAr').innerHTML = qrSvg(AR_BASE);
-  document.getElementById('qrDemo').innerHTML = qrSvg('https://projetos.75lab.com.br/panco-75lab-deck/qr/?peca=testeira-paes');
+  document.getElementById('qrDemo').innerHTML = qrSvg('https://projetos.75lab.com.br/produtos/panco-pecas-pdv/?qr=1');
 
   /* ---------- entrar numa tela ---------- */
   function entra(t){
@@ -1278,7 +1291,7 @@ body.pdf .celular{background:#151313 url(assets/qr-demo-tela.jpg) center 12px/30
     setTimeout(function(){ desenhaLigas(t); }, PDF ? 0 : 60);
     if (t.querySelector('#matriz')){ var fs = [].slice.call(t.querySelectorAll('.mfrente')); fs.forEach(function(x){ x.classList.remove('on'); }); auto(t, fs, frente, tempoTexto); }
     if (t.classList.contains('ar-t')){ peca(0); auto(t, [].slice.call(lista.querySelectorAll('.ar-item')), function(b){ peca(+b.dataset.i); }, function(){ return 7000; }); }
-    if (t.querySelector('.fn')){ var fns = [].slice.call(t.querySelectorAll('.fn')); auto(t, fns, modo, function(){ return 9000; }); }
+    if (t.querySelector('.fn')){ var fns = [].slice.call(t.querySelectorAll('.fn')); auto(t, fns, modo, function(f){ return f.dataset.telas.split(',').length * 2200 + 600; }); }
     if (t.querySelector('#esc')){ var rs = [].slice.call(t.querySelectorAll('.rota')); rota(rs[0]); auto(t, rs, rota, function(){ return 6000; }); }
   }
   function sai(t){ if (t.querySelector('#barras')) barras(t, false); }

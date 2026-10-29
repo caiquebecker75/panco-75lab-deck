@@ -7,14 +7,14 @@ Link público: https://projetos.75lab.com.br/panco-75lab-deck/
 ## Arquivos
 
 - `index.html`: o deck inteiro (palco fixo 1600 × 900 escalado, 14 telas). Setas ou espaço navegam, `M` abre o índice, `P` abre as outras oportunidades.
-- `qr/index.html`: a página que abre quando alguém escaneia o QR de demonstração (tela 11). Tem a vista do shopper e a do promotor; nada é enviado para servidor.
+- Tela 11: o QR aponta para a página real no sistema de QR da 75 LAB, `https://projetos.75lab.com.br/produtos/panco-pecas-pdv/?qr=1` (repo `caiquebecker75/produtos`, acesso livre sem senha). O celular mostra capturas reais desse fluxo (`assets/sis-*.webp`).
 - `assets/`: imagens extraídas do deck original (renders, fotos do Trade Visit, peças), logos e a fonte Nunito.
 - `vendor/`: `model-viewer` (AR da tela 10) e `qrcode-generator` (QR gerados na própria página).
 - `fonte/original.html`: o deck recebido, com as imagens já apontando para `assets/`.
 
 ## O que tem em cada tela
 
-Capa com as duas marcas, a 75 LAB em números, o percurso, o contexto de mercado (ABIMAPI e ABRAS), a dor ligada às fotos da loja, dores × frentes com as conexões, a gôndola, os pontos extras com botão de AR em cada estrutura, a Estação Café da Manhã com os pontos ligados ao texto, o AR das seis estruturas, a demonstração do QR, a escolha entre concentrar e espalhar, o próximo passo e o encerramento.
+Capa com as duas marcas, a 75 LAB em números, o percurso, o contexto de mercado (ABIMAPI e ABRAS), a dor ligada às fotos da loja, dores × frentes com as conexões, a gôndola, os pontos extras com botão de AR em cada estrutura, a Estação Café da Manhã com os pontos ligados ao texto, o AR das seis estruturas, o QR no sistema da 75 LAB, a escolha entre concentrar e espalhar, o próximo passo e o encerramento.
 
 Cada mudança de capítulo passa por uma cortina vermelha com o número do capítulo. Abas, frentes e rotas abrem sozinhas até o primeiro clique.
 
